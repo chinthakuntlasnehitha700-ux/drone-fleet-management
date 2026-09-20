@@ -1,13 +1,15 @@
 import { useState } from "react";
 import "./App.css";
 
+import Drones from "./Drones.jsx";
+
 function App() {
   const [page, setPage] = useState("dashboard");
 
   return (
     <div className="app">
 
-      {/* SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
       <aside className="sidebar">
 
         <div className="logo">
@@ -76,9 +78,10 @@ function App() {
 
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* ================= MAIN CONTENT ================= */}
       <main className="main-content">
 
+        {/* ================= DASHBOARD ================= */}
         {page === "dashboard" && (
           <div className="page">
 
@@ -128,7 +131,7 @@ function App() {
 
             </div>
 
-            {/* WELCOME */}
+            {/* WELCOME BOX */}
             <div className="welcome-box">
 
               <h2>
@@ -184,6 +187,7 @@ function App() {
             <div className="section">
 
               <div className="section-heading">
+
                 <h2>Recent Alerts</h2>
 
                 <button
@@ -192,6 +196,7 @@ function App() {
                 >
                   View All
                 </button>
+
               </div>
 
               <div className="alert-box">
@@ -211,23 +216,17 @@ function App() {
           </div>
         )}
 
-        {/* OTHER PAGES - TEMPORARY */}
-        {page !== "dashboard" && (
+        {/* ================= DRONES ================= */}
+        {page === "drones" && (
+          <Drones />
+        )}
+
+        {/* ================= OTHER PAGES ================= */}
+
+        {page === "live" && (
           <div className="coming-soon">
-
-            <h1>
-              {page === "drones" && "🚁 Drones"}
-              {page === "live" && "📍 Live Locations"}
-              {page === "missions" && "🎯 Missions"}
-              {page === "alerts" && "🔔 Alerts"}
-              {page === "docking" && "🔋 Docking Stations"}
-              {page === "ai" && "🤖 AI Predictions"}
-              {page === "reports" && "📈 Reports"}
-            </h1>
-
-            <p>
-              This module will be added next.
-            </p>
+            <h1>📍 Live Locations</h1>
+            <p>Live Locations module will be added next.</p>
 
             <button
               className="back-button"
@@ -235,7 +234,76 @@ function App() {
             >
               ← Back to Dashboard
             </button>
+          </div>
+        )}
 
+        {page === "missions" && (
+          <div className="coming-soon">
+            <h1>🎯 Missions</h1>
+            <p>Missions module will be added next.</p>
+
+            <button
+              className="back-button"
+              onClick={() => setPage("dashboard")}
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
+        )}
+
+        {page === "alerts" && (
+          <div className="coming-soon">
+            <h1>🔔 Alerts</h1>
+            <p>Alerts module will be added next.</p>
+
+            <button
+              className="back-button"
+              onClick={() => setPage("dashboard")}
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
+        )}
+
+        {page === "docking" && (
+          <div className="coming-soon">
+            <h1>🔋 Docking Stations</h1>
+            <p>Docking Stations module will be added next.</p>
+
+            <button
+              className="back-button"
+              onClick={() => setPage("dashboard")}
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
+        )}
+
+        {page === "ai" && (
+          <div className="coming-soon">
+            <h1>🤖 AI Predictions</h1>
+            <p>AI Predictions module will be added next.</p>
+
+            <button
+              className="back-button"
+              onClick={() => setPage("dashboard")}
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
+        )}
+
+        {page === "reports" && (
+          <div className="coming-soon">
+            <h1>📈 Reports</h1>
+            <p>Reports module will be added next.</p>
+
+            <button
+              className="back-button"
+              onClick={() => setPage("dashboard")}
+            >
+              ← Back to Dashboard
+            </button>
           </div>
         )}
 
