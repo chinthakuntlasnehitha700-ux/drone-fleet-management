@@ -4,6 +4,7 @@ import "./App.css";
 import Drones from "./Drones.jsx";
 import LiveLocations from "./LiveLocations.jsx";
 import Missions from "./Missions.jsx";
+import Alerts from "./Alerts.jsx";
 
 function App() {
   const [page, setPage] = useState("dashboard");
@@ -106,6 +107,8 @@ function App() {
         {page === "dashboard" && (
 
           <div className="page">
+
+            {/* HEADER */}
 
             <div className="top-header">
 
@@ -278,31 +281,10 @@ function App() {
         {/* ================= ALERTS ================= */}
 
         {page === "alerts" && (
-
-          <div className="coming-soon">
-
-            <h1>
-              🔔 Alerts
-            </h1>
-
-            <p>
-              Alerts module will be added next.
-            </p>
-
-            <button
-              className="back-button"
-              onClick={() =>
-                setPage("dashboard")
-              }
-            >
-              ← Back to Dashboard
-            </button>
-
-          </div>
-
+          <Alerts />
         )}
 
-        {/* ================= DOCKING ================= */}
+        {/* ================= DOCKING STATIONS ================= */}
 
         {page === "docking" && (
 
@@ -313,8 +295,7 @@ function App() {
             </h1>
 
             <p>
-              Docking Stations module will be added
-              next.
+              Docking Stations module will be added next.
             </p>
 
             <button
@@ -330,7 +311,7 @@ function App() {
 
         )}
 
-        {/* ================= AI ================= */}
+        {/* ================= AI PREDICTIONS ================= */}
 
         {page === "ai" && (
 
@@ -341,8 +322,7 @@ function App() {
             </h1>
 
             <p>
-              AI Predictions module will be added
-              next.
+              AI Predictions module will be added next.
             </p>
 
             <button
