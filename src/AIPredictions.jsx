@@ -1,85 +1,58 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 
 function AIPredictions() {
-  const [predictions] = useState([
-    {
-      id: "AI-001",
-      drone: "DR-001",
-      type: "Battery",
-      prediction: "Battery replacement may be required soon.",
-      risk: "Medium",
-      confidence: 87,
-      recommendation:
-        "Schedule battery inspection within the next 7 days.",
-    },
-    {
-      id: "AI-002",
-      drone: "DR-002",
-      type: "Performance",
-      prediction: "Normal flight performance is expected.",
-      risk: "Low",
-      confidence: 94,
-      recommendation:
-        "Continue regular monitoring and routine maintenance.",
-    },
-    {
-      id: "AI-003",
-      drone: "DR-003",
-      type: "Battery",
-      prediction: "Battery level may become critical during operation.",
-      risk: "High",
-      confidence: 91,
-      recommendation:
-        "Return the drone to the docking station for charging.",
-    },
-    {
-      id: "AI-004",
-      drone: "DR-004",
-      type: "Maintenance",
-      prediction: "Routine maintenance may be required.",
-      risk: "Medium",
-      confidence: 82,
-      recommendation:
-        "Schedule a maintenance inspection.",
-    },
-  ]);
+  const [predictions, setPredictions] = useState([]);
+  const [selectedPrediction, setSelectedPrediction] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedPrediction, setSelectedPrediction] =
-    useState(null);
+  const loadPredictions = () => {
+    setLoading(true);
+
+    fetch("http://127.0.0.1:8000/api/ai-predictions")
+      .then((response) => response.json())
+      .then((data) => {
+        setPredictions(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("AI prediction error:", error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadPredictions();
+  }, []);
 
   const lowRisk = predictions.filter(
-    (prediction) => prediction.risk === "Low"
+    (item) => item.risk === "Low"
   ).length;
 
   const mediumRisk = predictions.filter(
-    (prediction) => prediction.risk === "Medium"
+    (item) => item.risk === "Medium"
   ).length;
 
   const highRisk = predictions.filter(
-    (prediction) => prediction.risk === "High"
+    (item) => item.risk === "High"
   ).length;
-
-  const refreshPredictions = () => {
-    alert("AI predictions refreshed successfully!");
-  };
 
   return (
     <div className="page">
 
       {/* HEADER */}
-      <div className="page-header">
+      <div className="top-header">
 
         <div>
           <h1>AI Predictions</h1>
 
           <p>
-            AI-assisted predictions and recommendations for your drone fleet.
+            AI-assisted drone risk analysis and recommendations.
           </p>
         </div>
 
         <button
-          className="primary-btn"
-          onClick={refreshPredictions}
+          className="view-button"
+          onClick={loadPredictions}
         >
           🔄 Refresh Predictions
         </button>
@@ -87,58 +60,50 @@ function AIPredictions() {
       </div>
 
       {/* STATISTICS */}
-      <div className="mission-stats">
+      <div className="cards">
 
-        <div className="stat-card">
-          <span>🤖</span>
-
-          <div>
-            <small>Total Predictions</small>
-            <h2>{predictions.length}</h2>
-          </div>
+        <div className="card">
+          <h3>Total Predictions</h3>
+          <h2>
+            {loading ? "..." : predictions.length}
+          </h2>
+          <p>Backend analysis results</p>
         </div>
 
-        <div className="stat-card">
-          <span>🟢</span>
-
-          <div>
-            <small>Low Risk</small>
-            <h2>{lowRisk}</h2>
-          </div>
+        <div className="card">
+          <h3>Low Risk</h3>
+          <h2>
+            {loading ? "..." : lowRisk}
+          </h2>
+          <p>Normal condition</p>
         </div>
 
-        <div className="stat-card">
-          <span>⚠️</span>
-
-          <div>
-            <small>Medium Risk</small>
-            <h2>{mediumRisk}</h2>
-          </div>
+        <div className="card">
+          <h3>Medium Risk</h3>
+          <h2>
+            {loading ? "..." : mediumRisk}
+          </h2>
+          <p>Needs monitoring</p>
         </div>
 
-        <div className="stat-card">
-          <span>🔴</span>
-
-          <div>
-            <small>High Risk</small>
-            <h2>{highRisk}</h2>
-          </div>
+        <div className="card">
+          <h3>High Risk</h3>
+          <h2>
+            {loading ? "..." : highRisk}
+          </h2>
+          <p>Needs attention</p>
         </div>
 
       </div>
 
       {/* PREDICTIONS */}
-      <div className="missions-container">
+      <div className="section">
 
-        <div className="section-title">
+        <div className="section-heading">
 
-          <div>
-            <h2>Prediction Results</h2>
-
-            <p>
-              AI-generated insights for your drone fleet.
-            </p>
-          </div>
+          <h2>
+            AI Risk Predictions
+          </h2>
 
           <span>
             {predictions.length} predictions
@@ -146,77 +111,107 @@ function AIPredictions() {
 
         </div>
 
-        <div className="alert-list">
+        {loading ? (
 
-          {predictions.map((prediction) => (
+          <p>
+            Loading AI predictions...
+          </p>
 
-            <div
-              className={`alert-card ${prediction.risk.toLowerCase()}`}
-              key={prediction.id}
-            >
+        ) : (
 
-              {/* ICON */}
-              <div className="alert-icon">
-                🤖
-              </div>
+          <div>
 
-              {/* CONTENT */}
-              <div className="alert-content">
+            {predictions.map((item) => (
 
-                <div className="alert-title-row">
+              <div
+                className="alert-box"
+                key={item.id}
+                style={{
+                  marginBottom: "18px",
+                  padding: "20px"
+                }}
+              >
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "20px"
+                  }}
+                >
 
                   <div>
 
-                    <span
-                      className={`alert-level ${prediction.risk.toLowerCase()}`}
+                    <h3
+                      style={{
+                        color: "#111827",
+                        marginBottom: "8px"
+                      }}
                     >
-                      {prediction.risk} Risk
-                    </span>
-
-                    <h3>
-                      {prediction.prediction}
+                      🤖 {item.drone}
                     </h3>
+
+                    <p
+                      style={{
+                        marginBottom: "8px"
+                      }}
+                    >
+                      {item.prediction}
+                    </p>
+
+                    <p
+                      style={{
+                        color: "#374151",
+                        marginBottom: "6px"
+                      }}
+                    >
+                      <strong>Risk:</strong>{" "}
+                      {item.risk}
+                    </p>
+
+                    <p
+                      style={{
+                        color: "#374151",
+                        marginBottom: "6px"
+                      }}
+                    >
+                      <strong>Confidence:</strong>{" "}
+                      {item.confidence}%
+                    </p>
+
+                    <div
+                      className="progress-bar"
+                      style={{
+                        maxWidth: "300px",
+                        marginBottom: "10px"
+                      }}
+                    >
+
+                      <div
+                        className="progress-fill"
+                        style={{
+                          width: `${item.confidence}%`
+                        }}
+                      ></div>
+
+                    </div>
+
+                    <p
+                      style={{
+                        color: "#374151"
+                      }}
+                    >
+                      <strong>Recommendation:</strong>{" "}
+                      {item.recommendation}
+                    </p>
 
                   </div>
 
-                  <span className="alert-status">
-                    {prediction.drone}
-                  </span>
-
-                </div>
-
-                <p>
-                  <strong>Prediction Type:</strong>{" "}
-                  {prediction.type}
-                </p>
-
-                <p>
-                  <strong>Confidence:</strong>{" "}
-                  {prediction.confidence}%
-                </p>
-
-                <div className="progress-bar">
-
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: `${prediction.confidence}%`,
-                    }}
-                  ></div>
-
-                </div>
-
-                <p>
-                  <strong>Recommendation:</strong>{" "}
-                  {prediction.recommendation}
-                </p>
-
-                <div className="alert-actions">
-
                   <button
-                    className="view-btn"
+                    className="view-button"
                     onClick={() =>
-                      setSelectedPrediction(prediction)
+                      setSelectedPrediction(item)
                     }
                   >
                     View Details
@@ -226,11 +221,11 @@ function AIPredictions() {
 
               </div>
 
-            </div>
+            ))}
 
-          ))}
+          </div>
 
-        </div>
+        )}
 
       </div>
 
@@ -241,7 +236,9 @@ function AIPredictions() {
 
           <div className="modal-box">
 
-            <h2>🤖 AI Prediction Details</h2>
+            <h2>
+              🤖 AI Prediction Details
+            </h2>
 
             <p>
               <strong>Prediction ID:</strong>{" "}
@@ -279,7 +276,7 @@ function AIPredictions() {
             </p>
 
             <button
-              className="primary-btn"
+              className="view-button"
               onClick={() =>
                 setSelectedPrediction(null)
               }

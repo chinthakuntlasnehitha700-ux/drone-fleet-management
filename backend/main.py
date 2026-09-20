@@ -309,6 +309,70 @@ def restart_docking_station(station_id: str):
         "message": "Docking station not found"
     }
 
+# ---------------- AI PREDICTIONS ----------------
+
+@app.get("/api/ai-predictions")
+def get_ai_predictions():
+
+    predictions = []
+
+    for drone in drones:
+
+        battery = drone["battery"]
+        temperature = drone["temperature"]
+        signal = drone["signal"]
+
+        if battery < 30 or signal == "Weak" or temperature >= 35:
+            risk = "High"
+            confidence = 91
+
+            recommendation = (
+                "Inspect the drone immediately and avoid "
+                "long-duration missions."
+            )
+
+            prediction = (
+                "Potential maintenance or operational risk detected."
+            )
+
+        elif battery < 50 or signal == "Medium" or temperature >= 32:
+            risk = "Medium"
+            confidence = 84
+
+            recommendation = (
+                "Schedule a routine inspection and continue monitoring."
+            )
+
+            prediction = (
+                "Performance or battery condition may require attention."
+            )
+
+        else:
+            risk = "Low"
+            confidence = 94
+
+            recommendation = (
+                "Continue normal monitoring and routine maintenance."
+            )
+
+            prediction = (
+                "Normal operating condition is expected."
+            )
+
+        predictions.append(
+            {
+                "id": f"AI-{drone['id']}",
+                "drone": drone["id"],
+                "type": "Fleet Risk Analysis",
+                "prediction": prediction,
+                "risk": risk,
+                "confidence": confidence,
+                "recommendation": recommendation
+            }
+        )
+
+    return predictions
+
 # ---------------- LOGIN ----------------
 
 @app.post("/api/login")
