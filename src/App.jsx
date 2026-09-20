@@ -6,6 +6,7 @@ import LiveLocations from "./LiveLocations.jsx";
 import Missions from "./Missions.jsx";
 import Alerts from "./Alerts.jsx";
 import DockingStations from "./DockingStations.jsx";
+import AIPredictions from "./AIPredictions.jsx";
 
 function App() {
   const [page, setPage] = useState("dashboard");
@@ -82,7 +83,7 @@ function App() {
 
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <main className="main-content">
 
         {/* DASHBOARD */}
@@ -151,9 +152,7 @@ function App() {
             <div className="section">
 
               <div className="section-heading">
-
                 <h2>Fleet Status</h2>
-
               </div>
 
               <div className="status-grid">
@@ -220,51 +219,22 @@ function App() {
         )}
 
         {/* DRONES */}
-        {page === "drones" && (
-          <Drones />
-        )}
+        {page === "drones" && <Drones />}
 
         {/* LIVE LOCATIONS */}
-        {page === "live" && (
-          <LiveLocations />
-        )}
+        {page === "live" && <LiveLocations />}
 
         {/* MISSIONS */}
-        {page === "missions" && (
-          <Missions />
-        )}
+        {page === "missions" && <Missions />}
 
         {/* ALERTS */}
-        {page === "alerts" && (
-          <Alerts />
-        )}
+        {page === "alerts" && <Alerts />}
 
-        {/* DOCKING STATIONS */}
-        {page === "docking" && (
-          <DockingStations />
-        )}
+        {/* DOCKING */}
+        {page === "docking" && <DockingStations />}
 
         {/* AI PREDICTIONS */}
-        {page === "ai" && (
-
-          <div className="coming-soon">
-
-            <h1>🤖 AI Predictions</h1>
-
-            <p>
-              AI Predictions module will be added next.
-            </p>
-
-            <button
-              className="back-button"
-              onClick={() => setPage("dashboard")}
-            >
-              ← Back to Dashboard
-            </button>
-
-          </div>
-
-        )}
+        {page === "ai" && <AIPredictions />}
 
         {/* REPORTS */}
         {page === "reports" && (
