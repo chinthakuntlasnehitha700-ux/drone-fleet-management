@@ -111,6 +111,60 @@ missions = [
     }
 ]
 
+# ---------------- ALERTS ----------------
+
+alerts = [
+    {
+        "id": 1,
+        "level": "Critical",
+        "icon": "🔴",
+        "title": "Low Battery",
+        "message": "DR-003 battery level is below 20%.",
+        "source": "DR-003",
+        "time": "2 minutes ago",
+        "status": "Active"
+    },
+    {
+        "id": 2,
+        "level": "Warning",
+        "icon": "⚠️",
+        "title": "Weak Signal",
+        "message": "DR-007 connection signal is weak.",
+        "source": "DR-007",
+        "time": "8 minutes ago",
+        "status": "Active"
+    },
+    {
+        "id": 3,
+        "level": "Warning",
+        "icon": "🔋",
+        "title": "Docking Station Alert",
+        "message": "Docking Station DS-02 requires attention.",
+        "source": "DS-02",
+        "time": "15 minutes ago",
+        "status": "Active"
+    },
+    {
+        "id": 4,
+        "level": "Info",
+        "icon": "ℹ️",
+        "title": "Mission Completed",
+        "message": "DR-004 completed its inspection mission.",
+        "source": "DR-004",
+        "time": "32 minutes ago",
+        "status": "Active"
+    },
+    {
+        "id": 5,
+        "level": "Warning",
+        "icon": "🌡️",
+        "title": "High Temperature",
+        "message": "DR-005 temperature is above the normal range.",
+        "source": "DR-005",
+        "time": "45 minutes ago",
+        "status": "Active"
+    }
+]
 
 # ---------------- HOME ----------------
 
@@ -120,7 +174,6 @@ def home():
         "message": "DroneFleet AI Backend is running"
     }
 
-
 # ---------------- HEALTH ----------------
 
 @app.get("/api/health")
@@ -128,7 +181,6 @@ def health_check():
     return {
         "status": "healthy"
     }
-
 
 # ---------------- DRONE APIs ----------------
 
@@ -148,7 +200,6 @@ def get_drone(drone_id: str):
         "error": "Drone not found"
     }
 
-
 # ---------------- MISSION APIs ----------------
 
 @app.get("/api/missions")
@@ -167,6 +218,23 @@ def get_mission(mission_id: str):
         "error": "Mission not found"
     }
 
+# ---------------- ALERT APIs ----------------
+
+@app.get("/api/alerts")
+def get_alerts():
+    return alerts
+
+
+@app.get("/api/alerts/{alert_id}")
+def get_alert(alert_id: int):
+
+    for alert_item in alerts:
+        if alert_item["id"] == alert_id:
+            return alert_item
+
+    return {
+        "error": "Alert not found"
+    }
 
 # ---------------- LOGIN ----------------
 

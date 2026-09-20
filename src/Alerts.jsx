@@ -1,120 +1,86 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Alerts() {
-  const [alerts, setAlerts] = useState([
-    {
-      id: 1,
-      level: "Critical",
-      icon: "🔴",
-      title: "Low Battery",
-      message: "DR-003 battery level is below 20%.",
-      drone: "DR-003",
-      time: "2 minutes ago",
-      status: "Active",
-    },
-    {
-      id: 2,
-      level: "Warning",
-      icon: "⚠️",
-      title: "Weak Signal",
-      message: "DR-007 connection signal is weak.",
-      drone: "DR-007",
-      time: "8 minutes ago",
-      status: "Active",
-    },
-    {
-      id: 3,
-      level: "Warning",
-      icon: "🔋",
-      title: "Docking Station Alert",
-      message: "Docking Station DS-02 requires attention.",
-      drone: "DS-02",
-      time: "15 minutes ago",
-      status: "Active",
-    },
-    {
-      id: 4,
-      level: "Info",
-      icon: "ℹ️",
-      title: "Mission Completed",
-      message:
-        "DR-004 successfully completed its inspection mission.",
-      drone: "DR-004",
-      time: "32 minutes ago",
-      status: "Active",
-    },
-    {
-      id: 5,
-      level: "Warning",
-      icon: "🌡️",
-      title: "High Temperature",
-      message:
-        "DR-005 temperature is above the normal operating range.",
-      drone: "DR-005",
-      time: "45 minutes ago",
-      status: "Active",
-    },
-  ]);
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadAlerts = () => {
+    setLoading(true);
+
+    fetch("http://127.0.0.1:8000/api/alerts")
+      .then((response) => response.json())
+      .then((data) => {
+        setAlerts(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("Backend error:", error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadAlerts();
+  }, []);
 
   const acknowledgeAlert = (id) => {
     setAlerts(
-      alerts.map((alert) =>
-        alert.id === id
-          ? { ...alert, status: "Acknowledged" }
-          : alert
+      alerts.map((alertItem) =>
+        alertItem.id === id
+          ? {
+              ...alertItem,
+              status: "Acknowledged"
+            }
+          : alertItem
       )
     );
   };
 
   const clearAlert = (id) => {
     setAlerts(
-      alerts.filter((alert) => alert.id !== id)
+      alerts.filter((alertItem) => alertItem.id !== id)
     );
   };
 
   const activeCount = alerts.filter(
-    (alert) => alert.status === "Active"
+    (alertItem) => alertItem.status === "Active"
   ).length;
 
   const criticalCount = alerts.filter(
-    (alert) =>
-      alert.level === "Critical" &&
-      alert.status === "Active"
+    (alertItem) =>
+      alertItem.level === "Critical" &&
+      alertItem.status === "Active"
   ).length;
 
   const warningCount = alerts.filter(
-    (alert) =>
-      alert.level === "Warning" &&
-      alert.status === "Active"
+    (alertItem) =>
+      alertItem.level === "Warning" &&
+      alertItem.status === "Active"
   ).length;
 
   const infoCount = alerts.filter(
-    (alert) =>
-      alert.level === "Info" &&
-      alert.status === "Active"
+    (alertItem) =>
+      alertItem.level === "Info" &&
+      alertItem.status === "Active"
   ).length;
-
-  const refreshAlerts = () => {
-    alert("All alerts have been refreshed!");
-  };
 
   return (
     <div className="page">
 
       {/* HEADER */}
-      <div className="page-header">
+      <div className="top-header">
 
         <div>
           <h1>Alerts & Notifications</h1>
 
           <p>
-            Monitor important events and warnings from your drone fleet.
+            Monitor alerts and notifications from the backend.
           </p>
         </div>
 
         <button
-          className="primary-btn"
-          onClick={refreshAlerts}
+          className="view-button"
+          onClick={loadAlerts}
         >
           🔄 Refresh
         </button>
@@ -122,149 +88,148 @@ function Alerts() {
       </div>
 
       {/* STATISTICS */}
-      <div className="mission-stats">
+      <div className="cards">
 
-        <div className="stat-card">
-          <span>🔔</span>
-
-          <div>
-            <small>Active Alerts</small>
-            <h2>{activeCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Active Alerts</h3>
+          <h2>
+            {loading ? "..." : activeCount}
+          </h2>
+          <p>Current active alerts</p>
         </div>
 
-        <div className="stat-card">
-          <span>🔴</span>
-
-          <div>
-            <small>Critical</small>
-            <h2>{criticalCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Critical</h3>
+          <h2>
+            {loading ? "..." : criticalCount}
+          </h2>
+          <p>Immediate attention</p>
         </div>
 
-        <div className="stat-card">
-          <span>⚠️</span>
-
-          <div>
-            <small>Warnings</small>
-            <h2>{warningCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Warnings</h3>
+          <h2>
+            {loading ? "..." : warningCount}
+          </h2>
+          <p>System warnings</p>
         </div>
 
-        <div className="stat-card">
-          <span>ℹ️</span>
-
-          <div>
-            <small>Information</small>
-            <h2>{infoCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Information</h3>
+          <h2>
+            {loading ? "..." : infoCount}
+          </h2>
+          <p>Informational alerts</p>
         </div>
 
       </div>
 
       {/* ALERT LIST */}
-      <div className="missions-container">
+      <div className="section">
 
-        <div className="section-title">
+        <div className="section-heading">
 
-          <div>
-            <h2>Recent Alerts</h2>
-
-            <p>
-              Latest notifications from the drone fleet
-            </p>
-          </div>
+          <h2>Recent Alerts</h2>
 
           <span>
-            {activeCount} active
+            {loading ? "Loading..." : `${activeCount} active`}
           </span>
 
         </div>
 
-        <div className="alert-list">
+        {loading ? (
 
-          {alerts.length === 0 ? (
+          <p>Loading alert data...</p>
 
-            <div className="no-alerts">
+        ) : alerts.length === 0 ? (
 
-              <div>✅</div>
+          <div className="alert-box">
+            ✅ No alerts available.
+          </div>
 
-              <h3>No Active Alerts</h3>
+        ) : (
 
-              <p>
-                All drone systems are operating normally.
-              </p>
+          <div>
 
-            </div>
-
-          ) : (
-
-            alerts.map((alertItem) => (
+            {alerts.map((alertItem) => (
 
               <div
                 key={alertItem.id}
-                className={`alert-card ${alertItem.level.toLowerCase()}`}
+                className="alert-box"
+                style={{
+                  marginBottom: "15px",
+                  padding: "20px"
+                }}
               >
 
-                {/* ICON */}
-                <div className="alert-icon">
-                  {alertItem.icon}
-                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "20px",
+                    alignItems: "center"
+                  }}
+                >
 
-                {/* CONTENT */}
-                <div className="alert-content">
+                  <div>
 
-                  <div className="alert-title-row">
-
-                    <div>
-
-                      <span
-                        className={`alert-level ${alertItem.level.toLowerCase()}`}
-                      >
-                        {alertItem.level}
-                      </span>
-
-                      <h3>
-                        {alertItem.title}
-                      </h3>
-
-                    </div>
-
-                    <span
-                      className={`alert-status ${
-                        alertItem.status === "Acknowledged"
-                          ? "acknowledged"
-                          : ""
-                      }`}
+                    <h3
+                      style={{
+                        marginBottom: "8px",
+                        color: "#111827"
+                      }}
                     >
-                      {alertItem.status}
-                    </span>
+                      {alertItem.icon} {alertItem.title}
+                    </h3>
 
-                  </div>
+                    <p
+                      style={{
+                        marginBottom: "8px"
+                      }}
+                    >
+                      {alertItem.message}
+                    </p>
 
-                  <p>
-                    {alertItem.message}
-                  </p>
+                    <p
+                      style={{
+                        color: "#374151",
+                        fontSize: "14px"
+                      }}
+                    >
+                      <strong>Source:</strong>{" "}
+                      {alertItem.source}{" "}
+                      |{" "}
+                      <strong>Time:</strong>{" "}
+                      {alertItem.time}{" "}
+                      |{" "}
+                      <strong>Level:</strong>{" "}
+                      {alertItem.level}
+                    </p>
 
-                  <div className="alert-details">
-
-                    <span>
-                      🚁 {alertItem.drone}
-                    </span>
-
-                    <span>
-                      🕒 {alertItem.time}
-                    </span>
+                    <p
+                      style={{
+                        marginTop: "8px",
+                        fontWeight: "600"
+                      }}
+                    >
+                      Status: {alertItem.status}
+                    </p>
 
                   </div>
 
                   {/* ACTIONS */}
                   {alertItem.status === "Active" && (
 
-                    <div className="alert-actions">
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "10px",
+                        flexShrink: 0
+                      }}
+                    >
 
                       <button
-                        className="acknowledge-btn"
+                        className="view-button"
                         onClick={() =>
                           acknowledgeAlert(alertItem.id)
                         }
@@ -273,7 +238,7 @@ function Alerts() {
                       </button>
 
                       <button
-                        className="clear-alert-btn"
+                        className="view-button"
                         onClick={() =>
                           clearAlert(alertItem.id)
                         }
@@ -289,11 +254,11 @@ function Alerts() {
 
               </div>
 
-            ))
+            ))}
 
-          )}
+          </div>
 
-        </div>
+        )}
 
       </div>
 
