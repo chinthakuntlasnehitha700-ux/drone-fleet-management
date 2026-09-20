@@ -1,60 +1,28 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Drones() {
-  const [drones] = useState([
-    {
-      id: "DR-001",
-      model: "Falcon X1",
-      status: "Active",
-      battery: 92,
-      location: "Hyderabad",
-      mission: "Delivery A",
-      temperature: 31,
-      signal: "Strong",
-    },
-    {
-      id: "DR-002",
-      model: "Falcon X1",
-      status: "In Mission",
-      battery: 68,
-      location: "Secunderabad",
-      mission: "Survey B",
-      temperature: 29,
-      signal: "Strong",
-    },
-    {
-      id: "DR-003",
-      model: "Hawk Pro",
-      status: "Charging",
-      battery: 41,
-      location: "Dock A",
-      mission: "Returning",
-      temperature: 30,
-      signal: "Medium",
-    },
-    {
-      id: "DR-004",
-      model: "Hawk Pro",
-      status: "Warning",
-      battery: 23,
-      location: "Hyderabad",
-      mission: "Maintenance",
-      temperature: 35,
-      signal: "Weak",
-    },
-    {
-      id: "DR-005",
-      model: "Falcon X2",
-      status: "Available",
-      battery: 87,
-      location: "Dock B",
-      mission: "None",
-      temperature: 28,
-      signal: "Strong",
-    },
-  ]);
-
+  const [drones, setDrones] = useState([]);
   const [selectedDrone, setSelectedDrone] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadDrones = () => {
+    setLoading(true);
+
+    fetch("http://127.0.0.1:8000/api/drones")
+      .then((response) => response.json())
+      .then((data) => {
+        setDrones(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("Backend error:", error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadDrones();
+  }, []);
 
   const activeCount = drones.filter(
     (drone) =>
@@ -74,92 +42,126 @@ function Drones() {
     (drone) => drone.status === "Warning"
   ).length;
 
+  const lowBatteryCount = drones.filter(
+    (drone) => drone.battery < 20
+  ).length;
+
   const getStatusClass = (status) => {
-    if (status === "Active") return "active";
-    if (status === "In Mission") return "mission";
-    if (status === "Charging") return "charging";
-    if (status === "Available") return "available";
-    return "warning";
+    if (status === "Active") {
+      return "status-active";
+    }
+
+    if (status === "In Mission") {
+      return "status-mission";
+    }
+
+    if (status === "Charging") {
+      return "status-charging";
+    }
+
+    if (status === "Available") {
+      return "status-available";
+    }
+
+    return "status-warning";
   };
+
+  if (loading) {
+    return (
+      <div className="page">
+        <h1>Drone Fleet</h1>
+        <p>Loading drone data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
 
       {/* HEADER */}
-      <div className="page-header">
+      <div className="top-header">
+
         <div>
           <h1>Drone Fleet</h1>
+
           <p>
-            Monitor and manage all drones in your fleet.
+            Live drone data received from the backend.
           </p>
         </div>
 
         <button
-          className="primary-btn"
-          onClick={() => alert("Drone list refreshed!")}
+          className="view-button"
+          onClick={loadDrones}
         >
           🔄 Refresh
         </button>
+
       </div>
 
       {/* STATISTICS */}
-      <div className="mission-stats">
+      <div className="cards">
 
-        <div className="stat-card">
-          <span>🚁</span>
-          <div>
-            <small>Total Drones</small>
-            <h2>{drones.length}</h2>
-          </div>
+        <div className="card">
+          <h3>Total Drones</h3>
+          <h2>{drones.length}</h2>
+          <p>Backend registered drones</p>
         </div>
 
-        <div className="stat-card">
-          <span>🟢</span>
-          <div>
-            <small>Active</small>
-            <h2>{activeCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Active Drones</h3>
+          <h2>{activeCount}</h2>
+          <p>Active or in mission</p>
         </div>
 
-        <div className="stat-card">
-          <span>⚡</span>
-          <div>
-            <small>Charging</small>
-            <h2>{chargingCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Charging</h3>
+          <h2>{chargingCount}</h2>
+          <p>Currently charging</p>
         </div>
 
-        <div className="stat-card">
-          <span>⚠️</span>
-          <div>
-            <small>Warning</small>
-            <h2>{warningCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Warnings</h3>
+          <h2>{warningCount}</h2>
+          <p>Needs attention</p>
         </div>
+
+      </div>
+
+      {/* LOW BATTERY */}
+      <div className="welcome-box">
+
+        <h2>
+          Fleet Monitoring 🚁
+        </h2>
+
+        <p>
+          {lowBatteryCount} drone(s) currently have
+          battery below 20%.
+        </p>
 
       </div>
 
       {/* DRONE TABLE */}
-      <div className="missions-container">
+      <div className="section">
 
-        <div className="section-title">
-          <div>
-            <h2>All Drones</h2>
-            <p>
-              Current status and health information
-            </p>
-          </div>
+        <div className="section-heading">
+
+          <h2>
+            All Drones
+          </h2>
 
           <span>
             {drones.length} drones
           </span>
+
         </div>
 
-        <div className="table-container">
+        <div style={{ overflowX: "auto" }}>
 
-          <table>
+          <table className="drone-table">
 
             <thead>
+
               <tr>
                 <th>Drone ID</th>
                 <th>Model</th>
@@ -167,9 +169,11 @@ function Drones() {
                 <th>Battery</th>
                 <th>Location</th>
                 <th>Mission</th>
+                <th>Temperature</th>
                 <th>Signal</th>
                 <th>Action</th>
               </tr>
+
             </thead>
 
             <tbody>
@@ -179,51 +183,56 @@ function Drones() {
                 <tr key={drone.id}>
 
                   <td>
-                    <strong>{drone.id}</strong>
+                    <strong>
+                      {drone.id}
+                    </strong>
                   </td>
 
-                  <td>{drone.model}</td>
+                  <td>
+                    {drone.model}
+                  </td>
 
                   <td>
                     <span
-                      className={`status-badge ${getStatusClass(
+                      className={getStatusClass(
                         drone.status
-                      )}`}
+                      )}
                     >
                       {drone.status}
                     </span>
                   </td>
 
                   <td>
-                    <div className="battery-cell">
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{
-                            width: `${drone.battery}%`,
-                          }}
-                        ></div>
-                      </div>
-
-                      <span>{drone.battery}%</span>
-                    </div>
+                    {drone.battery}%
                   </td>
 
-                  <td>📍 {drone.location}</td>
-
-                  <td>{drone.mission}</td>
-
-                  <td>{drone.signal}</td>
+                  <td>
+                    📍 {drone.location}
+                  </td>
 
                   <td>
+                    {drone.mission}
+                  </td>
+
+                  <td>
+                    {drone.temperature}°C
+                  </td>
+
+                  <td>
+                    {drone.signal}
+                  </td>
+
+                  <td>
+
                     <button
-                      className="view-btn"
+                      className="view-button"
                       onClick={() =>
                         setSelectedDrone(drone)
                       }
                     >
                       View
                     </button>
+
                   </td>
 
                 </tr>
@@ -238,47 +247,53 @@ function Drones() {
 
       </div>
 
-      {/* EXTRA STATUS */}
-      <div className="missions-container">
+      {/* FLEET SUMMARY */}
+      <div className="section">
 
-        <div className="section-title">
-          <div>
-            <h2>Fleet Overview</h2>
-            <p>
-              Quick summary of drone availability
-            </p>
-          </div>
+        <div className="section-heading">
+          <h2>Fleet Summary</h2>
         </div>
 
-        <div className="mission-stats">
+        <div className="status-grid">
 
-          <div className="stat-card">
-            <span>🔵</span>
-            <div>
-              <small>Available</small>
-              <h2>{availableCount}</h2>
-            </div>
+          <div className="status-box">
+            <span>🟢</span>
+            <strong>{activeCount}</strong>
+            <p>Active</p>
           </div>
 
-          <div className="stat-card">
+          <div className="status-box">
+            <span>⚡</span>
+            <strong>{chargingCount}</strong>
+            <p>Charging</p>
+          </div>
+
+          <div className="status-box">
+            <span>🔵</span>
+            <strong>{availableCount}</strong>
+            <p>Available</p>
+          </div>
+
+          <div className="status-box">
             <span>⚠️</span>
-            <div>
-              <small>Needs Attention</small>
-              <h2>{warningCount}</h2>
-            </div>
+            <strong>{warningCount}</strong>
+            <p>Warning</p>
           </div>
 
         </div>
 
       </div>
 
-      {/* DETAILS POPUP */}
+      {/* DRONE DETAILS POPUP */}
       {selectedDrone && (
+
         <div className="modal-overlay">
 
           <div className="modal-box">
 
-            <h2>Drone Details</h2>
+            <h2>
+              🚁 Drone Details
+            </h2>
 
             <p>
               <strong>Drone ID:</strong>{" "}
@@ -301,16 +316,6 @@ function Drones() {
             </p>
 
             <p>
-              <strong>Temperature:</strong>{" "}
-              {selectedDrone.temperature}°C
-            </p>
-
-            <p>
-              <strong>Signal:</strong>{" "}
-              {selectedDrone.signal}
-            </p>
-
-            <p>
               <strong>Location:</strong>{" "}
               {selectedDrone.location}
             </p>
@@ -320,9 +325,21 @@ function Drones() {
               {selectedDrone.mission}
             </p>
 
+            <p>
+              <strong>Temperature:</strong>{" "}
+              {selectedDrone.temperature}°C
+            </p>
+
+            <p>
+              <strong>Signal:</strong>{" "}
+              {selectedDrone.signal}
+            </p>
+
             <button
-              className="primary-btn"
-              onClick={() => setSelectedDrone(null)}
+              className="view-button"
+              onClick={() =>
+                setSelectedDrone(null)
+              }
             >
               Close
             </button>
@@ -330,6 +347,7 @@ function Drones() {
           </div>
 
         </div>
+
       )}
 
     </div>

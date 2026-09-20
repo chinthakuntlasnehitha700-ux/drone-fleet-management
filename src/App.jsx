@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 import Drones from "./Drones.jsx";
@@ -11,6 +11,58 @@ import Report from "./Report.jsx";
 
 function App() {
   const [page, setPage] = useState("dashboard");
+  const [drones, setDrones] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadDrones = () => {
+    setLoading(true);
+
+    fetch("http://127.0.0.1:8000/api/drones")
+      .then((response) => response.json())
+      .then((data) => {
+        setDrones(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("Backend error:", error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadDrones();
+  }, []);
+
+  const activeDrones = drones.filter(
+    (drone) =>
+      drone.status === "Active" ||
+      drone.status === "In Mission"
+  ).length;
+
+  const chargingDrones = drones.filter(
+    (drone) => drone.status === "Charging"
+  ).length;
+
+  const warningDrones = drones.filter(
+    (drone) => drone.status === "Warning"
+  ).length;
+
+  const lowBatteryDrones = drones.filter(
+    (drone) => drone.battery < 20
+  ).length;
+
+  const activeAlerts =
+    warningDrones + lowBatteryDrones;
+
+  const averageBattery =
+    drones.length > 0
+      ? Math.round(
+          drones.reduce(
+            (total, drone) => total + drone.battery,
+            0
+          ) / drones.length
+        )
+      : 0;
 
   return (
     <div className="app">
@@ -26,56 +78,72 @@ function App() {
         <nav>
 
           <button
-            className={page === "dashboard" ? "active" : ""}
+            className={
+              page === "dashboard" ? "active" : ""
+            }
             onClick={() => setPage("dashboard")}
           >
             📊 Dashboard
           </button>
 
           <button
-            className={page === "drones" ? "active" : ""}
+            className={
+              page === "drones" ? "active" : ""
+            }
             onClick={() => setPage("drones")}
           >
             🚁 Drones
           </button>
 
           <button
-            className={page === "live" ? "active" : ""}
+            className={
+              page === "live" ? "active" : ""
+            }
             onClick={() => setPage("live")}
           >
             📍 Live Locations
           </button>
 
           <button
-            className={page === "missions" ? "active" : ""}
+            className={
+              page === "missions" ? "active" : ""
+            }
             onClick={() => setPage("missions")}
           >
             🎯 Missions
           </button>
 
           <button
-            className={page === "alerts" ? "active" : ""}
+            className={
+              page === "alerts" ? "active" : ""
+            }
             onClick={() => setPage("alerts")}
           >
             🔔 Alerts
           </button>
 
           <button
-            className={page === "docking" ? "active" : ""}
+            className={
+              page === "docking" ? "active" : ""
+            }
             onClick={() => setPage("docking")}
           >
             🔋 Docking Stations
           </button>
 
           <button
-            className={page === "ai" ? "active" : ""}
+            className={
+              page === "ai" ? "active" : ""
+            }
             onClick={() => setPage("ai")}
           >
             🤖 AI Predictions
           </button>
 
           <button
-            className={page === "reports" ? "active" : ""}
+            className={
+              page === "reports" ? "active" : ""
+            }
             onClick={() => setPage("reports")}
           >
             📈 Reports
@@ -94,6 +162,8 @@ function App() {
         {page === "dashboard" && (
 
           <div className="page">
+
+            {/* HEADER */}
 
             <div className="top-header">
 
@@ -115,33 +185,61 @@ function App() {
 
             </div>
 
+            {/* DASHBOARD CARDS */}
+
             <div className="cards">
 
               <div className="card">
                 <h3>Total Drones</h3>
-                <h2>12</h2>
-                <p>Registered drones</p>
+
+                <h2>
+                  {loading ? "..." : drones.length}
+                </h2>
+
+                <p>
+                  From backend
+                </p>
               </div>
 
               <div className="card">
                 <h3>Active Drones</h3>
-                <h2>8</h2>
-                <p>Currently flying</p>
+
+                <h2>
+                  {loading ? "..." : activeDrones}
+                </h2>
+
+                <p>
+                  Active or in mission
+                </p>
               </div>
 
               <div className="card">
                 <h3>Fleet Health</h3>
-                <h2>92%</h2>
-                <p>Overall fleet health</p>
+
+                <h2>
+                  {loading ? "..." : `${averageBattery}%`}
+                </h2>
+
+                <p>
+                  Average battery level
+                </p>
               </div>
 
               <div className="card">
                 <h3>Active Alerts</h3>
-                <h2>3</h2>
-                <p>Requires attention</p>
+
+                <h2>
+                  {loading ? "..." : activeAlerts}
+                </h2>
+
+                <p>
+                  Requires attention
+                </p>
               </div>
 
             </div>
+
+            {/* WELCOME */}
 
             <div className="welcome-box">
 
@@ -157,47 +255,181 @@ function App() {
 
             </div>
 
+            {/* FLEET STATUS */}
+
             <div className="section">
 
               <div className="section-heading">
-                <h2>Fleet Status</h2>
+
+                <h2>
+                  Fleet Status
+                </h2>
+
+                <button
+                  className="view-button"
+                  onClick={loadDrones}
+                >
+                  🔄 Refresh
+                </button>
+
               </div>
 
               <div className="status-grid">
 
                 <div className="status-box">
+
                   <span>🟢</span>
-                  <strong>8</strong>
-                  <p>Active</p>
+
+                  <strong>
+                    {loading ? "..." : activeDrones}
+                  </strong>
+
+                  <p>
+                    Active
+                  </p>
+
                 </div>
 
                 <div className="status-box">
+
                   <span>⚡</span>
-                  <strong>2</strong>
-                  <p>Charging</p>
+
+                  <strong>
+                    {loading ? "..." : chargingDrones}
+                  </strong>
+
+                  <p>
+                    Charging
+                  </p>
+
                 </div>
 
                 <div className="status-box">
-                  <span>🔵</span>
-                  <strong>1</strong>
-                  <p>Available</p>
+
+                  <span>🔋</span>
+
+                  <strong>
+                    {loading ? "..." : lowBatteryDrones}
+                  </strong>
+
+                  <p>
+                    Low Battery
+                  </p>
+
                 </div>
 
                 <div className="status-box">
+
                   <span>⚠️</span>
-                  <strong>1</strong>
-                  <p>Warning</p>
+
+                  <strong>
+                    {loading ? "..." : warningDrones}
+                  </strong>
+
+                  <p>
+                    Warning
+                  </p>
+
                 </div>
 
               </div>
 
             </div>
 
+            {/* BACKEND DRONE TABLE */}
+
             <div className="section">
 
               <div className="section-heading">
 
-                <h2>Recent Alerts</h2>
+                <h2>
+                  Live Drone Data
+                </h2>
+
+                <button
+                  className="view-button"
+                  onClick={() => setPage("drones")}
+                >
+                  View All
+                </button>
+
+              </div>
+
+              {loading ? (
+
+                <p>
+                  Loading drone data...
+                </p>
+
+              ) : (
+
+                <div style={{ overflowX: "auto" }}>
+
+                  <table className="drone-table">
+
+                    <thead>
+
+                      <tr>
+                        <th>Drone ID</th>
+                        <th>Status</th>
+                        <th>Battery</th>
+                        <th>Location</th>
+                        <th>Mission</th>
+                      </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                      {drones.map((drone) => (
+
+                        <tr key={drone.id}>
+
+                          <td>
+                            <strong>
+                              {drone.id}
+                            </strong>
+                          </td>
+
+                          <td>
+                            {drone.status}
+                          </td>
+
+                          <td>
+                            {drone.battery}%
+                          </td>
+
+                          <td>
+                            📍 {drone.location}
+                          </td>
+
+                          <td>
+                            {drone.mission}
+                          </td>
+
+                        </tr>
+
+                      ))}
+
+                    </tbody>
+
+                  </table>
+
+                </div>
+
+              )}
+
+            </div>
+
+            {/* RECENT ALERTS */}
+
+            <div className="section">
+
+              <div className="section-heading">
+
+                <h2>
+                  Recent Alerts
+                </h2>
 
                 <button
                   className="view-button"
@@ -208,17 +440,30 @@ function App() {
 
               </div>
 
-              <div className="alert-box">
-                ⚠️ DR-003 battery is below 20%.
-              </div>
+              {lowBatteryDrones > 0 && (
 
-              <div className="alert-box">
-                ⚠️ DR-007 connection signal is weak.
-              </div>
+                <div className="alert-box">
+                  ⚠️ At least one drone has low battery.
+                </div>
 
-              <div className="alert-box">
-                ⚠️ Docking Station DS-02 requires attention.
-              </div>
+              )}
+
+              {warningDrones > 0 && (
+
+                <div className="alert-box">
+                  ⚠️ At least one drone requires attention.
+                </div>
+
+              )}
+
+              {lowBatteryDrones === 0 &&
+                warningDrones === 0 && (
+
+                  <div className="alert-box">
+                    ✅ All drone systems are operating normally.
+                  </div>
+
+                )}
 
             </div>
 
@@ -226,43 +471,43 @@ function App() {
 
         )}
 
-        {/* DRONES */}
+        {/* ================= DRONES ================= */}
 
         {page === "drones" && (
           <Drones />
         )}
 
-        {/* LIVE LOCATIONS */}
+        {/* ================= LIVE LOCATIONS ================= */}
 
         {page === "live" && (
           <LiveLocations />
         )}
 
-        {/* MISSIONS */}
+        {/* ================= MISSIONS ================= */}
 
         {page === "missions" && (
           <Missions />
         )}
 
-        {/* ALERTS */}
+        {/* ================= ALERTS ================= */}
 
         {page === "alerts" && (
           <Alerts />
         )}
 
-        {/* DOCKING STATIONS */}
+        {/* ================= DOCKING ================= */}
 
         {page === "docking" && (
           <DockingStations />
         )}
 
-        {/* AI PREDICTIONS */}
+        {/* ================= AI PREDICTIONS ================= */}
 
         {page === "ai" && (
           <AIPredictions />
         )}
 
-        {/* REPORTS */}
+        {/* ================= REPORTS ================= */}
 
         {page === "reports" && (
           <Report />
