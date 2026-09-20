@@ -7,6 +7,7 @@ import Missions from "./Missions.jsx";
 import Alerts from "./Alerts.jsx";
 import DockingStations from "./DockingStations.jsx";
 import AIPredictions from "./AIPredictions.jsx";
+import Report from "./Report.jsx";
 
 function App() {
   const [page, setPage] = useState("dashboard");
@@ -14,7 +15,8 @@ function App() {
   return (
     <div className="app">
 
-      {/* SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
+
       <aside className="sidebar">
 
         <div className="logo">
@@ -83,10 +85,12 @@ function App() {
 
       </aside>
 
-      {/* MAIN */}
+      {/* ================= MAIN CONTENT ================= */}
+
       <main className="main-content">
 
-        {/* DASHBOARD */}
+        {/* ================= DASHBOARD ================= */}
+
         {page === "dashboard" && (
 
           <div className="page">
@@ -94,11 +98,15 @@ function App() {
             <div className="top-header">
 
               <div>
-                <h1>Drone Fleet Dashboard</h1>
+
+                <h1>
+                  Drone Fleet Dashboard
+                </h1>
 
                 <p>
                   AI-assisted monitoring and fleet management
                 </p>
+
               </div>
 
               <div className="admin">
@@ -219,43 +227,45 @@ function App() {
         )}
 
         {/* DRONES */}
-        {page === "drones" && <Drones />}
+
+        {page === "drones" && (
+          <Drones />
+        )}
 
         {/* LIVE LOCATIONS */}
-        {page === "live" && <LiveLocations />}
+
+        {page === "live" && (
+          <LiveLocations />
+        )}
 
         {/* MISSIONS */}
-        {page === "missions" && <Missions />}
+
+        {page === "missions" && (
+          <Missions />
+        )}
 
         {/* ALERTS */}
-        {page === "alerts" && <Alerts />}
 
-        {/* DOCKING */}
-        {page === "docking" && <DockingStations />}
+        {page === "alerts" && (
+          <Alerts />
+        )}
+
+        {/* DOCKING STATIONS */}
+
+        {page === "docking" && (
+          <DockingStations />
+        )}
 
         {/* AI PREDICTIONS */}
-        {page === "ai" && <AIPredictions />}
+
+        {page === "ai" && (
+          <AIPredictions />
+        )}
 
         {/* REPORTS */}
+
         {page === "reports" && (
-
-          <div className="coming-soon">
-
-            <h1>📈 Reports</h1>
-
-            <p>
-              Reports module will be added next.
-            </p>
-
-            <button
-              className="back-button"
-              onClick={() => setPage("dashboard")}
-            >
-              ← Back to Dashboard
-            </button>
-
-          </div>
-
+          <Report />
         )}
 
       </main>
