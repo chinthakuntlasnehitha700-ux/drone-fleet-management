@@ -280,3 +280,21 @@ button {
     grid-template-columns: 1fr;
   }
 }
+/* MISSION STATISTICS - MAKE TEXT DARKER */
+
+.stat-card {
+  background: white;
+}
+
+.stat-card small {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stat-card h2 {
+  color: #111827;
+  font-size: 32px;
+  font-weight: 800;
+  margin: 8px 0;
+}
