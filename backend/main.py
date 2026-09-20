@@ -7,7 +7,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Allow React frontend to connect
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -166,6 +165,43 @@ alerts = [
     }
 ]
 
+# ---------------- DOCKING STATIONS ----------------
+
+docking_stations = [
+    {
+        "id": "DS-01",
+        "location": "Main Campus",
+        "status": "Available",
+        "battery": 92,
+        "drone": "No Drone",
+        "temperature": 27
+    },
+    {
+        "id": "DS-02",
+        "location": "Zone B",
+        "status": "Attention",
+        "battery": 64,
+        "drone": "DR-007",
+        "temperature": 34
+    },
+    {
+        "id": "DS-03",
+        "location": "Zone C",
+        "status": "Charging",
+        "battery": 78,
+        "drone": "DR-003",
+        "temperature": 29
+    },
+    {
+        "id": "DS-04",
+        "location": "Zone A",
+        "status": "Available",
+        "battery": 96,
+        "drone": "No Drone",
+        "temperature": 26
+    }
+]
+
 # ---------------- HOME ----------------
 
 @app.get("/")
@@ -182,7 +218,7 @@ def health_check():
         "status": "healthy"
     }
 
-# ---------------- DRONE APIs ----------------
+# ---------------- DRONES ----------------
 
 @app.get("/api/drones")
 def get_drones():
@@ -200,7 +236,7 @@ def get_drone(drone_id: str):
         "error": "Drone not found"
     }
 
-# ---------------- MISSION APIs ----------------
+# ---------------- MISSIONS ----------------
 
 @app.get("/api/missions")
 def get_missions():
@@ -218,7 +254,7 @@ def get_mission(mission_id: str):
         "error": "Mission not found"
     }
 
-# ---------------- ALERT APIs ----------------
+# ---------------- ALERTS ----------------
 
 @app.get("/api/alerts")
 def get_alerts():
@@ -234,6 +270,43 @@ def get_alert(alert_id: int):
 
     return {
         "error": "Alert not found"
+    }
+
+# ---------------- DOCKING STATIONS ----------------
+
+@app.get("/api/docking-stations")
+def get_docking_stations():
+    return docking_stations
+
+
+@app.get("/api/docking-stations/{station_id}")
+def get_docking_station(station_id: str):
+
+    for station in docking_stations:
+        if station["id"] == station_id:
+            return station
+
+    return {
+        "error": "Docking station not found"
+    }
+
+
+@app.post("/api/docking-stations/{station_id}/restart")
+def restart_docking_station(station_id: str):
+
+    for station in docking_stations:
+        if station["id"] == station_id:
+            station["status"] = "Available"
+
+            return {
+                "success": True,
+                "message": f"{station_id} restarted successfully",
+                "station": station
+            }
+
+    return {
+        "success": False,
+        "message": "Docking station not found"
     }
 
 # ---------------- LOGIN ----------------

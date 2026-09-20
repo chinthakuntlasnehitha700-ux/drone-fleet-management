@@ -1,42 +1,28 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 
 function DockingStations() {
-  const [stations, setStations] = useState([
-    {
-      id: "DS-01",
-      location: "Main Campus",
-      status: "Available",
-      battery: 92,
-      drone: "No Drone",
-      temperature: 27,
-    },
-    {
-      id: "DS-02",
-      location: "Zone B",
-      status: "Attention",
-      battery: 64,
-      drone: "DR-007",
-      temperature: 34,
-    },
-    {
-      id: "DS-03",
-      location: "Zone C",
-      status: "Charging",
-      battery: 78,
-      drone: "DR-003",
-      temperature: 29,
-    },
-    {
-      id: "DS-04",
-      location: "Zone A",
-      status: "Available",
-      battery: 96,
-      drone: "No Drone",
-      temperature: 26,
-    },
-  ]);
-
+  const [stations, setStations] = useState([]);
   const [selectedStation, setSelectedStation] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadStations = () => {
+    setLoading(true);
+
+    fetch("http://127.0.0.1:8000/api/docking-stations")
+      .then((response) => response.json())
+      .then((data) => {
+        setStations(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("Backend error:", error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadStations();
+  }, []);
 
   const availableCount = stations.filter(
     (station) => station.status === "Available"
@@ -51,40 +37,48 @@ function DockingStations() {
   ).length;
 
   const restartStation = (id) => {
-    setStations(
-      stations.map((station) =>
-        station.id === id
-          ? {
-              ...station,
-              status: "Available",
-            }
-          : station
-      )
-    );
+    fetch(
+      `http://127.0.0.1:8000/api/docking-stations/${id}/restart`,
+      {
+        method: "POST",
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setStations((currentStations) =>
+            currentStations.map((station) =>
+              station.id === id
+                ? data.station
+                : station
+            )
+          );
 
-    alert(`${id} restarted successfully.`);
-  };
-
-  const refreshStations = () => {
-    alert("Docking station data refreshed!");
+          alert(`${id} restarted successfully!`);
+        }
+      })
+      .catch((error) => {
+        console.log("Restart error:", error);
+      });
   };
 
   return (
     <div className="page">
 
       {/* HEADER */}
-      <div className="page-header">
+      <div className="top-header">
 
         <div>
           <h1>Docking Stations</h1>
+
           <p>
-            Monitor charging stations and drone docking activity.
+            Monitor docking stations and charging activity from the backend.
           </p>
         </div>
 
         <button
-          className="primary-btn"
-          onClick={refreshStations}
+          className="view-button"
+          onClick={loadStations}
         >
           🔄 Refresh
         </button>
@@ -92,53 +86,50 @@ function DockingStations() {
       </div>
 
       {/* STATISTICS */}
-      <div className="mission-stats">
+      <div className="cards">
 
-        <div className="stat-card">
-          <span>🔋</span>
-          <div>
-            <small>Total Stations</small>
-            <h2>{stations.length}</h2>
-          </div>
+        <div className="card">
+          <h3>Total Stations</h3>
+          <h2>
+            {loading ? "..." : stations.length}
+          </h2>
+          <p>Backend registered stations</p>
         </div>
 
-        <div className="stat-card">
-          <span>🟢</span>
-          <div>
-            <small>Available</small>
-            <h2>{availableCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Available</h3>
+          <h2>
+            {loading ? "..." : availableCount}
+          </h2>
+          <p>Ready for drones</p>
         </div>
 
-        <div className="stat-card">
-          <span>⚡</span>
-          <div>
-            <small>Charging</small>
-            <h2>{chargingCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Charging</h3>
+          <h2>
+            {loading ? "..." : chargingCount}
+          </h2>
+          <p>Currently charging</p>
         </div>
 
-        <div className="stat-card">
-          <span>⚠️</span>
-          <div>
-            <small>Attention</small>
-            <h2>{attentionCount}</h2>
-          </div>
+        <div className="card">
+          <h3>Attention</h3>
+          <h2>
+            {loading ? "..." : attentionCount}
+          </h2>
+          <p>Requires attention</p>
         </div>
 
       </div>
 
       {/* STATION LIST */}
-      <div className="missions-container">
+      <div className="section">
 
-        <div className="section-title">
+        <div className="section-heading">
 
-          <div>
-            <h2>Station Status</h2>
-            <p>
-              Current status of all docking stations
-            </p>
-          </div>
+          <h2>
+            Docking Station Status
+          </h2>
 
           <span>
             {stations.length} stations
@@ -146,114 +137,131 @@ function DockingStations() {
 
         </div>
 
-        <div className="docking-grid">
+        {loading ? (
 
-          {stations.map((station) => (
+          <p>
+            Loading docking station data...
+          </p>
 
-            <div
-              className="docking-card"
-              key={station.id}
-            >
+        ) : (
 
-              {/* TOP */}
-              <div className="docking-top">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "20px",
+            }}
+          >
 
-                <div className="station-icon">
-                  🔋
-                </div>
+            {stations.map((station) => (
 
-                <div>
-                  <h3>{station.id}</h3>
-                  <p>📍 {station.location}</p>
-                </div>
+              <div
+                key={station.id}
+                className="card"
+              >
 
-                <span
-                  className={`station-status ${
-                    station.status === "Available"
-                      ? "available"
-                      : station.status === "Charging"
-                      ? "charging"
-                      : "attention"
-                  }`}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "15px",
+                  }}
                 >
-                  {station.status}
-                </span>
 
-              </div>
+                  <div>
 
-              {/* DETAILS */}
-              <div className="docking-details">
+                    <h3
+                      style={{
+                        color: "#111827",
+                        fontSize: "20px",
+                        marginBottom: "5px",
+                      }}
+                    >
+                      🔋 {station.id}
+                    </h3>
 
-                <div className="docking-row">
-                  <span>🚁 Connected Drone</span>
-                  <strong>{station.drone}</strong>
+                    <p>
+                      📍 {station.location}
+                    </p>
+
+                  </div>
+
+                  <strong>
+                    {station.status}
+                  </strong>
+
                 </div>
 
-                <div className="docking-row">
-                  <span>🌡️ Temperature</span>
-                  <strong>{station.temperature}°C</strong>
-                </div>
+                <p>
+                  <strong>Connected Drone:</strong>{" "}
+                  {station.drone}
+                </p>
 
-                <div className="docking-row">
-                  <span>🔋 Station Battery</span>
-                  <strong>{station.battery}%</strong>
-                </div>
+                <p>
+                  <strong>Temperature:</strong>{" "}
+                  {station.temperature}°C
+                </p>
 
-              </div>
+                <p>
+                  <strong>Battery:</strong>{" "}
+                  {station.battery}%
+                </p>
 
-              {/* BATTERY */}
-              <div className="station-battery">
-
-                <div className="battery-label">
-                  <span>Battery Capacity</span>
-                  <strong>{station.battery}%</strong>
-                </div>
-
-                <div className="progress-bar">
-
+                <div
+                  className="progress-bar"
+                  style={{
+                    marginTop: "10px",
+                    marginBottom: "15px",
+                  }}
+                >
                   <div
                     className="progress-fill"
                     style={{
                       width: `${station.battery}%`,
                     }}
                   ></div>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                  }}
+                >
+
+                  {station.status === "Attention" && (
+
+                    <button
+                      className="view-button"
+                      onClick={() =>
+                        restartStation(station.id)
+                      }
+                    >
+                      🔄 Restart
+                    </button>
+
+                  )}
+
+                  <button
+                    className="view-button"
+                    onClick={() =>
+                      setSelectedStation(station)
+                    }
+                  >
+                    View Details
+                  </button>
 
                 </div>
 
               </div>
 
-              {/* BUTTON */}
-              {station.status === "Attention" && (
+            ))}
 
-                <button
-                  className="restart-btn"
-                  onClick={() =>
-                    restartStation(station.id)
-                  }
-                >
-                  🔄 Restart Station
-                </button>
+          </div>
 
-              )}
-
-              {station.status !== "Attention" && (
-
-                <button
-                  className="view-btn docking-view-btn"
-                  onClick={() =>
-                    setSelectedStation(station)
-                  }
-                >
-                  View Details
-                </button>
-
-              )}
-
-            </div>
-
-          ))}
-
-        </div>
+        )}
 
       </div>
 
@@ -264,7 +272,9 @@ function DockingStations() {
 
           <div className="modal-box">
 
-            <h2>Docking Station Details</h2>
+            <h2>
+              🔋 Docking Station Details
+            </h2>
 
             <p>
               <strong>Station:</strong>{" "}
@@ -282,13 +292,8 @@ function DockingStations() {
             </p>
 
             <p>
-              <strong>Connected Drone:</strong>{" "}
+              <strong>Drone:</strong>{" "}
               {selectedStation.drone}
-            </p>
-
-            <p>
-              <strong>Temperature:</strong>{" "}
-              {selectedStation.temperature}°C
             </p>
 
             <p>
@@ -296,9 +301,16 @@ function DockingStations() {
               {selectedStation.battery}%
             </p>
 
+            <p>
+              <strong>Temperature:</strong>{" "}
+              {selectedStation.temperature}°C
+            </p>
+
             <button
-              className="primary-btn"
-              onClick={() => setSelectedStation(null)}
+              className="view-button"
+              onClick={() =>
+                setSelectedStation(null)
+              }
             >
               Close
             </button>
