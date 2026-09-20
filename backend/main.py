@@ -7,7 +7,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Allow frontend to connect to backend
+# Allow React frontend to connect
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -19,7 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Sample drone data
+# ---------------- DRONES ----------------
+
 drones = [
     {
         "id": "DR-001",
@@ -73,8 +74,46 @@ drones = [
     }
 ]
 
+# ---------------- MISSIONS ----------------
 
-# Home
+missions = [
+    {
+        "id": "MS-001",
+        "drone": "DR-001",
+        "task": "Delivery",
+        "location": "Zone A",
+        "status": "In Progress",
+        "progress": 72
+    },
+    {
+        "id": "MS-002",
+        "drone": "DR-002",
+        "task": "Survey",
+        "location": "Zone B",
+        "status": "In Progress",
+        "progress": 48
+    },
+    {
+        "id": "MS-003",
+        "drone": "DR-003",
+        "task": "Return",
+        "location": "Zone C",
+        "status": "Returning",
+        "progress": 85
+    },
+    {
+        "id": "MS-004",
+        "drone": "DR-004",
+        "task": "Inspection",
+        "location": "Zone A",
+        "status": "Completed",
+        "progress": 100
+    }
+]
+
+
+# ---------------- HOME ----------------
+
 @app.get("/")
 def home():
     return {
@@ -82,7 +121,8 @@ def home():
     }
 
 
-# Health check
+# ---------------- HEALTH ----------------
+
 @app.get("/api/health")
 def health_check():
     return {
@@ -90,15 +130,16 @@ def health_check():
     }
 
 
-# Get all drones
+# ---------------- DRONE APIs ----------------
+
 @app.get("/api/drones")
 def get_drones():
     return drones
 
 
-# Get one drone
 @app.get("/api/drones/{drone_id}")
 def get_drone(drone_id: str):
+
     for drone in drones:
         if drone["id"] == drone_id:
             return drone
@@ -108,7 +149,27 @@ def get_drone(drone_id: str):
     }
 
 
-# Simple login
+# ---------------- MISSION APIs ----------------
+
+@app.get("/api/missions")
+def get_missions():
+    return missions
+
+
+@app.get("/api/missions/{mission_id}")
+def get_mission(mission_id: str):
+
+    for mission in missions:
+        if mission["id"] == mission_id:
+            return mission
+
+    return {
+        "error": "Mission not found"
+    }
+
+
+# ---------------- LOGIN ----------------
+
 @app.post("/api/login")
 def login():
     return {
