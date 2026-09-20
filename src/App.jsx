@@ -1,122 +1,248 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [page, setPage] = useState("dashboard");
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
 
-      <div className="ticks"></div>
+      {/* SIDEBAR */}
+      <aside className="sidebar">
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="logo">
+          🚁 <span>DroneFleet AI</span>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <nav>
+
+          <button
+            className={page === "dashboard" ? "active" : ""}
+            onClick={() => setPage("dashboard")}
+          >
+            📊 Dashboard
+          </button>
+
+          <button
+            className={page === "drones" ? "active" : ""}
+            onClick={() => setPage("drones")}
+          >
+            🚁 Drones
+          </button>
+
+          <button
+            className={page === "live" ? "active" : ""}
+            onClick={() => setPage("live")}
+          >
+            📍 Live Locations
+          </button>
+
+          <button
+            className={page === "missions" ? "active" : ""}
+            onClick={() => setPage("missions")}
+          >
+            🎯 Missions
+          </button>
+
+          <button
+            className={page === "alerts" ? "active" : ""}
+            onClick={() => setPage("alerts")}
+          >
+            🔔 Alerts
+          </button>
+
+          <button
+            className={page === "docking" ? "active" : ""}
+            onClick={() => setPage("docking")}
+          >
+            🔋 Docking Stations
+          </button>
+
+          <button
+            className={page === "ai" ? "active" : ""}
+            onClick={() => setPage("ai")}
+          >
+            🤖 AI Predictions
+          </button>
+
+          <button
+            className={page === "reports" ? "active" : ""}
+            onClick={() => setPage("reports")}
+          >
+            📈 Reports
+          </button>
+
+        </nav>
+
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="main-content">
+
+        {page === "dashboard" && (
+          <div className="page">
+
+            {/* HEADER */}
+            <div className="top-header">
+
+              <div>
+                <h1>Drone Fleet Dashboard</h1>
+
+                <p>
+                  AI-assisted monitoring and fleet management
+                </p>
+              </div>
+
+              <div className="admin">
+                👤 Admin
+              </div>
+
+            </div>
+
+            {/* DASHBOARD CARDS */}
+            <div className="cards">
+
+              <div className="card">
+                <h3>Total Drones</h3>
+                <h2>12</h2>
+                <p>Registered drones</p>
+              </div>
+
+              <div className="card">
+                <h3>Active Drones</h3>
+                <h2>8</h2>
+                <p>Currently flying</p>
+              </div>
+
+              <div className="card">
+                <h3>Fleet Health</h3>
+                <h2>92%</h2>
+                <p>Overall fleet health</p>
+              </div>
+
+              <div className="card">
+                <h3>Active Alerts</h3>
+                <h2>3</h2>
+                <p>Requires attention</p>
+              </div>
+
+            </div>
+
+            {/* WELCOME */}
+            <div className="welcome-box">
+
+              <h2>
+                Welcome to DroneFleet AI 🚁
+              </h2>
+
+              <p>
+                Manage your drone fleet, monitor missions,
+                track live locations and use AI-assisted
+                predictions from one platform.
+              </p>
+
+            </div>
+
+            {/* FLEET STATUS */}
+            <div className="section">
+
+              <div className="section-heading">
+                <h2>Fleet Status</h2>
+              </div>
+
+              <div className="status-grid">
+
+                <div className="status-box">
+                  <span>🟢</span>
+                  <strong>8</strong>
+                  <p>Active</p>
+                </div>
+
+                <div className="status-box">
+                  <span>⚡</span>
+                  <strong>2</strong>
+                  <p>Charging</p>
+                </div>
+
+                <div className="status-box">
+                  <span>🔵</span>
+                  <strong>1</strong>
+                  <p>Available</p>
+                </div>
+
+                <div className="status-box">
+                  <span>⚠️</span>
+                  <strong>1</strong>
+                  <p>Warning</p>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* RECENT ALERTS */}
+            <div className="section">
+
+              <div className="section-heading">
+                <h2>Recent Alerts</h2>
+
+                <button
+                  className="view-button"
+                  onClick={() => setPage("alerts")}
+                >
+                  View All
+                </button>
+              </div>
+
+              <div className="alert-box">
+                ⚠️ DR-003 battery is below 20%.
+              </div>
+
+              <div className="alert-box">
+                ⚠️ DR-007 connection signal is weak.
+              </div>
+
+              <div className="alert-box">
+                ⚠️ Docking Station DS-02 requires attention.
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* OTHER PAGES - TEMPORARY */}
+        {page !== "dashboard" && (
+          <div className="coming-soon">
+
+            <h1>
+              {page === "drones" && "🚁 Drones"}
+              {page === "live" && "📍 Live Locations"}
+              {page === "missions" && "🎯 Missions"}
+              {page === "alerts" && "🔔 Alerts"}
+              {page === "docking" && "🔋 Docking Stations"}
+              {page === "ai" && "🤖 AI Predictions"}
+              {page === "reports" && "📈 Reports"}
+            </h1>
+
+            <p>
+              This module will be added next.
+            </p>
+
+            <button
+              className="back-button"
+              onClick={() => setPage("dashboard")}
+            >
+              ← Back to Dashboard
+            </button>
+
+          </div>
+        )}
+
+      </main>
+
+    </div>
+  );
 }
 
-export default App
+export default App;
