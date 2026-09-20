@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 
 import Drones from "./Drones.jsx";
+import LiveLocations from "./LiveLocations.jsx";
 
 function App() {
   const [page, setPage] = useState("dashboard");
@@ -221,26 +222,20 @@ function App() {
           <Drones />
         )}
 
-        {/* ================= OTHER PAGES ================= */}
-
+        {/* ================= LIVE LOCATIONS ================= */}
         {page === "live" && (
-          <div className="coming-soon">
-            <h1>📍 Live Locations</h1>
-            <p>Live Locations module will be added next.</p>
-
-            <button
-              className="back-button"
-              onClick={() => setPage("dashboard")}
-            >
-              ← Back to Dashboard
-            </button>
-          </div>
+          <LiveLocations />
         )}
 
+        {/* ================= MISSIONS ================= */}
         {page === "missions" && (
           <div className="coming-soon">
+
             <h1>🎯 Missions</h1>
-            <p>Missions module will be added next.</p>
+
+            <p>
+              Missions module will be added next.
+            </p>
 
             <button
               className="back-button"
@@ -248,13 +243,19 @@ function App() {
             >
               ← Back to Dashboard
             </button>
+
           </div>
         )}
 
+        {/* ================= ALERTS ================= */}
         {page === "alerts" && (
           <div className="coming-soon">
+
             <h1>🔔 Alerts</h1>
-            <p>Alerts module will be added next.</p>
+
+            <p>
+              Alerts module will be added next.
+            </p>
 
             <button
               className="back-button"
@@ -262,13 +263,19 @@ function App() {
             >
               ← Back to Dashboard
             </button>
+
           </div>
         )}
 
+        {/* ================= DOCKING STATIONS ================= */}
         {page === "docking" && (
           <div className="coming-soon">
+
             <h1>🔋 Docking Stations</h1>
-            <p>Docking Stations module will be added next.</p>
+
+            <p>
+              Docking Stations module will be added next.
+            </p>
 
             <button
               className="back-button"
@@ -276,13 +283,19 @@ function App() {
             >
               ← Back to Dashboard
             </button>
+
           </div>
         )}
 
+        {/* ================= AI PREDICTIONS ================= */}
         {page === "ai" && (
           <div className="coming-soon">
+
             <h1>🤖 AI Predictions</h1>
-            <p>AI Predictions module will be added next.</p>
+
+            <p>
+              AI Predictions module will be added next.
+            </p>
 
             <button
               className="back-button"
@@ -290,13 +303,19 @@ function App() {
             >
               ← Back to Dashboard
             </button>
+
           </div>
         )}
 
+        {/* ================= REPORTS ================= */}
         {page === "reports" && (
           <div className="coming-soon">
+
             <h1>📈 Reports</h1>
-            <p>Reports module will be added next.</p>
+
+            <p>
+              Reports module will be added next.
+            </p>
 
             <button
               className="back-button"
@@ -304,6 +323,7 @@ function App() {
             >
               ← Back to Dashboard
             </button>
+
           </div>
         )}
 
