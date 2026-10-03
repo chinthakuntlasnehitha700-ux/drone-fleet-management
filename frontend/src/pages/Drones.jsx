@@ -1,59 +1,43 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../api'
 
 function Drones() {
-
-  const [drones, setDrones] = useState([
-    {
-      id: 'DR-001',
-      model: 'DJI Matrice 350',
-      location: 'Zone A',
-      battery: 92,
-      status: 'Online',
-      mission: 'Delivery'
-    },
-    {
-      id: 'DR-002',
-      model: 'DJI Mavic 3',
-      location: 'Zone B',
-      battery: 76,
-      status: 'Online',
-      mission: 'Survey'
-    },
-    {
-      id: 'DR-003',
-      model: 'Autel EVO II',
-      location: 'Zone C',
-      battery: 24,
-      status: 'Returning',
-      mission: 'Inspection'
-    },
-    {
-      id: 'DR-004',
-      model: 'DJI Matrice 300',
-      location: 'Zone A',
-      battery: 88,
-      status: 'Online',
-      mission: 'Inspection'
-    },
-    {
-      id: 'DR-005',
-      model: 'DJI Mavic 3 Enterprise',
-      location: 'Zone D',
-      battery: 61,
-      status: 'Charging',
-      mission: 'None'
-    },
-    {
-      id: 'DR-006',
-      model: 'DJI Matrice 350',
-      location: 'Zone B',
-      battery: 45,
-      status: 'Online',
-      mission: 'Survey'
-    }
-  ])
-
+  const [drones, setDrones] = useState([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    loadDrones()
+  }, [])
+
+  const loadDrones = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const response = await apiFetch('/api/drones')
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to fetch drones')
+      }
+
+      const data = await response.json()
+
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid drone data received')
+      }
+
+      setDrones(data)
+    } catch (error) {
+      console.error(error)
+      setError(error.message || 'Unable to connect to backend')
+      setDrones([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredDrones = drones.filter((drone) =>
     drone.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -71,140 +55,135 @@ function Drones() {
     if (status === 'Online') return 'status-online'
     if (status === 'Returning') return 'status-returning'
     if (status === 'Charging') return 'status-charging'
-
     return ''
-  }
-
-  const deleteDrone = (id) => {
-    setDrones(drones.filter((drone) => drone.id !== id))
   }
 
   return (
     <div className="drones-page">
 
-      {/* HEADER */}
-
       <div className="module-header">
-
         <div>
           <h2>Drone Management</h2>
           <p>Monitor and manage your entire drone fleet.</p>
         </div>
 
-        <button className="primary-button">
-          + Add Drone
+        <button
+          className="primary-button"
+          onClick={loadDrones}
+        >
+          Refresh Drones
         </button>
-
       </div>
 
-
-      {/* SEARCH */}
-
       <div className="search-section">
-
         <input
           type="text"
           placeholder="Search by drone ID, model or location..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
       </div>
 
+      {loading && (
+        <div className="loading-message">
+          Loading drones...
+        </div>
+      )}
 
-      {/* DRONE TABLE */}
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
 
-      <div className="drone-table-container">
+      {!loading && !error && (
+        <div className="drone-table-container">
 
-        <table className="drone-table">
+          <table className="drone-table">
 
-          <thead>
-            <tr>
-              <th>Drone ID</th>
-              <th>Model</th>
-              <th>Location</th>
-              <th>Battery</th>
-              <th>Status</th>
-              <th>Mission</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+            <thead>
+              <tr>
+                <th>Drone ID</th>
+                <th>Model</th>
+                <th>Location</th>
+                <th>Battery</th>
+                <th>Status</th>
+                <th>Mission</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-          <tbody>
+            <tbody>
 
-            {filteredDrones.map((drone) => (
+              {filteredDrones.map((drone) => (
+                <tr key={drone.id}>
 
-              <tr key={drone.id}>
+                  <td>
+                    <strong>{drone.id}</strong>
+                  </td>
 
-                <td>
-                  <strong>{drone.id}</strong>
-                </td>
+                  <td>
+                    {drone.model}
+                  </td>
 
-                <td>
-                  {drone.model}
-                </td>
+                  <td>
+                    📍 {drone.location}
+                  </td>
 
-                <td>
-                  📍 {drone.location}
-                </td>
+                  <td>
+                    <div className="battery-container">
 
-                <td>
+                      <div className="battery-bar">
+                        <div
+                          className={`battery-fill ${getBatteryClass(drone.battery)}`}
+                          style={{
+                            width: `${drone.battery}%`
+                          }}
+                        ></div>
+                      </div>
 
-                  <div className="battery-container">
-
-                    <div className="battery-bar">
-
-                      <div
-                        className={`battery-fill ${getBatteryClass(drone.battery)}`}
-                        style={{
-                          width: `${drone.battery}%`
-                        }}
-                      ></div>
+                      <span>
+                        {drone.battery}%
+                      </span>
 
                     </div>
+                  </td>
 
-                    <span>
-                      {drone.battery}%
+                  <td>
+                    <span
+                      className={`status-badge ${getStatusClass(drone.status)}`}
+                    >
+                      {drone.status}
                     </span>
+                  </td>
 
-                  </div>
+                  <td>
+                    {drone.mission}
+                  </td>
 
-                </td>
+                  <td>
+                    <button className="action-button">
+                      View
+                    </button>
+                  </td>
 
-                <td>
+                </tr>
+              ))}
 
-                  <span
-                    className={`status-badge ${getStatusClass(drone.status)}`}
-                  >
-                    {drone.status}
-                  </span>
+            </tbody>
 
-                </td>
+          </table>
 
-                <td>
-                  {drone.mission}
-                </td>
+        </div>
+      )}
 
-                <td>
-
-                  <button
-                    className="action-button"
-                    onClick={() => deleteDrone(drone.id)}
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
+      {!loading &&
+        !error &&
+        filteredDrones.length === 0 && (
+          <div className="no-data-message">
+            No drones found.
+          </div>
+        )}
 
     </div>
   )

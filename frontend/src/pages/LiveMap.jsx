@@ -1,202 +1,186 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../api'
 
 function LiveMap() {
+  const [drones, setDrones] = useState([])
   const [selectedDrone, setSelectedDrone] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const drones = [
-    {
-      id: 'DR-001',
-      zone: 'Zone A',
-      status: 'Online',
-      battery: 92,
-      mission: 'Delivery',
-      x: '25%',
-      y: '30%'
-    },
-    {
-      id: 'DR-002',
-      zone: 'Zone B',
-      status: 'Online',
-      battery: 76,
-      mission: 'Survey',
-      x: '68%',
-      y: '25%'
-    },
-    {
-      id: 'DR-003',
-      zone: 'Zone C',
-      status: 'Returning',
-      battery: 24,
-      mission: 'Inspection',
-      x: '72%',
-      y: '70%'
-    },
-    {
-      id: 'DR-004',
-      zone: 'Zone D',
-      status: 'Online',
-      battery: 88,
-      mission: 'Inspection',
-      x: '30%',
-      y: '68%'
+  useEffect(() => {
+    loadDrones()
+  }, [])
+
+  const loadDrones = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const response = await apiFetch('/api/drones')
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to fetch drone locations')
+      }
+
+      const data = await response.json()
+
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid drone location data received')
+      }
+
+      setDrones(data)
+
+      if (data.length > 0) {
+        setSelectedDrone(data[0])
+      }
+    } catch (error) {
+      console.error(error)
+      setError(error.message || 'Unable to connect to backend')
+      setDrones([])
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const getStatusClass = (status) => {
+    if (status === 'Online') return 'status-online'
+    if (status === 'Returning') return 'status-returning'
+    if (status === 'Charging') return 'status-charging'
+    return ''
+  }
 
   return (
     <div className="live-map-page">
 
       <div className="module-header">
         <div>
-          <h2>Live Fleet Map</h2>
-          <p>Monitor real-time drone locations and fleet activity.</p>
+          <h2>Live Drone Map</h2>
+          <p>Monitor current drone locations and operational status.</p>
         </div>
 
-        <div className="live-indicator">
-          <span></span> Live Monitoring
-        </div>
+        <button
+          className="primary-button"
+          onClick={loadDrones}
+        >
+          Refresh Locations
+        </button>
       </div>
 
-      <div className="map-layout">
+      {loading && (
+        <div className="loading-message">
+          Loading live drone locations...
+        </div>
+      )}
 
-        {/* MAP */}
-        <div className="map-container">
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
 
-          <div className="map-top-bar">
-            <strong>Drone Operations Area</strong>
-
-            <div className="map-legend">
-              <span>
-                <i className="legend-online"></i>
-                Online
-              </span>
-
-              <span>
-                <i className="legend-returning"></i>
-                Returning
-              </span>
-
-              <span>
-                <i className="legend-low"></i>
-                Low Battery
-              </span>
-            </div>
-          </div>
+      {!loading && !error && (
+        <div className="live-map-layout">
 
           <div className="operations-map">
 
-            <div className="zone zone-a">ZONE A</div>
-            <div className="zone zone-b">ZONE B</div>
-            <div className="zone zone-c">ZONE C</div>
-            <div className="zone zone-d">ZONE D</div>
-
-            <div className="map-road road-1"></div>
-            <div className="map-road road-2"></div>
-            <div className="map-road road-3"></div>
-
-            <div className="docking-point">
-              🏠
-              <small>Main Dock</small>
+            <div className="panel-header">
+              <h3>Fleet Location Overview</h3>
             </div>
 
-            {drones.map((drone) => (
-              <button
-                key={drone.id}
-                className={`drone-marker ${
-                  drone.status === 'Returning'
-                    ? 'marker-returning'
-                    : drone.battery <= 25
-                    ? 'marker-low'
-                    : 'marker-online'
-                }`}
-                style={{
-                  left: drone.x,
-                  top: drone.y
-                }}
-                onClick={() => setSelectedDrone(drone)}
-              >
-                🚁
-              </button>
-            ))}
+            <div className="fleet-map-panel">
 
-            <div className="map-label campus-label">
-              SR University Campus
+              {drones.length === 0 ? (
+                <div className="no-data-message">
+                  No drone location data available.
+                </div>
+              ) : (
+                drones.map((drone, index) => (
+                  <button
+                    key={drone.id}
+                    className="map-drone-item"
+                    onClick={() => setSelectedDrone(drone)}
+                  >
+                    <span className="drone-map-icon">
+                      🚁
+                    </span>
+
+                    <span>
+                      <strong>{drone.id}</strong>
+                      <br />
+                      {drone.location}
+                    </span>
+
+                    <span
+                      className={`status-badge ${getStatusClass(
+                        drone.status
+                      )}`}
+                    >
+                      {drone.status}
+                    </span>
+                  </button>
+                ))
+              )}
+
             </div>
 
           </div>
-        </div>
 
-        {/* RIGHT PANEL */}
-        <div className="map-side-panel">
+          <div className="selected-drone-details">
 
-          <div className="panel-title">
-            <h3>Fleet Status</h3>
-            <span>{drones.length} Active</span>
-          </div>
-
-          {drones.map((drone) => (
-            <div
-              key={drone.id}
-              className="map-drone-card"
-              onClick={() => setSelectedDrone(drone)}
-            >
-              <div className="drone-card-top">
-                <strong>{drone.id}</strong>
-
-                <span
-                  className={`mini-status ${
-                    drone.status === 'Online'
-                      ? 'mini-online'
-                      : 'mini-returning'
-                  }`}
-                >
-                  {drone.status}
-                </span>
-              </div>
-
-              <p>📍 {drone.zone}</p>
-
-              <div className="map-battery">
-                <span>Battery</span>
-                <strong>{drone.battery}%</strong>
-              </div>
-
-              <div className="mini-battery">
-                <div
-                  style={{ width: `${drone.battery}%` }}
-                  className={
-                    drone.battery <= 25
-                      ? 'mini-battery-low'
-                      : 'mini-battery-good'
-                  }
-                ></div>
-              </div>
-
-              <small>Mission: {drone.mission}</small>
-            </div>
-          ))}
-
-          {selectedDrone && (
-            <div className="selected-drone">
+            <div className="panel-header">
               <h3>Selected Drone</h3>
-
-              <p><strong>ID:</strong> {selectedDrone.id}</p>
-              <p><strong>Zone:</strong> {selectedDrone.zone}</p>
-              <p><strong>Status:</strong> {selectedDrone.status}</p>
-              <p><strong>Battery:</strong> {selectedDrone.battery}%</p>
-              <p><strong>Mission:</strong> {selectedDrone.mission}</p>
-
-              <button
-                className="close-button"
-                onClick={() => setSelectedDrone(null)}
-              >
-                Close
-              </button>
             </div>
-          )}
+
+            {selectedDrone ? (
+              <div>
+
+                <h2>{selectedDrone.id}</h2>
+
+                <p>
+                  <strong>Model:</strong>{' '}
+                  {selectedDrone.model}
+                </p>
+
+                <p>
+                  <strong>Location:</strong>{' '}
+                  {selectedDrone.location}
+                </p>
+
+                <p>
+                  <strong>Battery:</strong>{' '}
+                  {selectedDrone.battery}%
+                </p>
+
+                <p>
+                  <strong>Status:</strong>{' '}
+                  {selectedDrone.status}
+                </p>
+
+                <p>
+                  <strong>Mission:</strong>{' '}
+                  {selectedDrone.mission}
+                </p>
+
+                <button
+                  className="primary-button"
+                  onClick={loadDrones}
+                >
+                  Refresh Drone
+                </button>
+
+              </div>
+            ) : (
+              <div className="no-data-message">
+                Select a drone to view details.
+              </div>
+            )}
+
+          </div>
 
         </div>
+      )}
 
-      </div>
     </div>
   )
 }

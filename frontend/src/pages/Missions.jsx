@@ -1,75 +1,64 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../api'
 
 function Missions() {
-  const [missions, setMissions] = useState([
-    {
-      id: 'MS-001',
-      drone: 'DR-001',
-      type: 'Delivery',
-      location: 'Zone A',
-      status: 'Active',
-      progress: 72,
-      priority: 'High'
-    },
-    {
-      id: 'MS-002',
-      drone: 'DR-002',
-      type: 'Survey',
-      location: 'Zone B',
-      status: 'Active',
-      progress: 48,
-      priority: 'Medium'
-    },
-    {
-      id: 'MS-003',
-      drone: 'DR-003',
-      type: 'Inspection',
-      location: 'Zone C',
-      status: 'Returning',
-      progress: 86,
-      priority: 'High'
-    },
-    {
-      id: 'MS-004',
-      drone: 'DR-004',
-      type: 'Inspection',
-      location: 'Zone D',
-      status: 'Completed',
-      progress: 100,
-      priority: 'Low'
-    }
-  ])
-
+  const [missions, setMissions] = useState([])
   const [filter, setFilter] = useState('All')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    loadMissions()
+  }, [])
+
+  const loadMissions = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const response = await apiFetch('/api/missions')
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to fetch missions')
+      }
+
+      const data = await response.json()
+
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid mission data received')
+      }
+
+      setMissions(data)
+    } catch (error) {
+      console.error(error)
+      setError(error.message || 'Unable to connect to backend')
+      setMissions([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredMissions =
     filter === 'All'
       ? missions
-      : missions.filter((mission) => mission.status === filter)
+      : missions.filter(
+          (mission) => mission.status === filter
+        )
 
-  const cancelMission = (id) => {
-    setMissions(
-      missions.map((mission) =>
-        mission.id === id
-          ? { ...mission, status: 'Cancelled', progress: 0 }
-          : mission
-      )
-    )
-  }
+  const totalMissions = missions.length
 
-  const getStatusClass = (status) => {
-    if (status === 'Active') return 'mission-active'
-    if (status === 'Completed') return 'mission-completed'
-    if (status === 'Returning') return 'mission-returning'
-    if (status === 'Cancelled') return 'mission-cancelled'
-    return ''
-  }
+  const activeMissions = missions.filter(
+    (mission) => mission.status === 'Active'
+  ).length
 
-  const getPriorityClass = (priority) => {
-    if (priority === 'High') return 'priority-high'
-    if (priority === 'Medium') return 'priority-medium'
-    return 'priority-low'
-  }
+  const returningMissions = missions.filter(
+    (mission) => mission.status === 'Returning'
+  ).length
+
+  const completedMissions = missions.filter(
+    (mission) => mission.status === 'Completed'
+  ).length
 
   return (
     <div className="missions-page">
@@ -77,188 +66,139 @@ function Missions() {
       <div className="module-header">
         <div>
           <h2>Mission Management</h2>
-          <p>Create, monitor and manage drone missions.</p>
+          <p>
+            Monitor and manage drone missions.
+          </p>
         </div>
 
-        <button className="primary-button">
-          + Create Mission
+        <button
+          className="primary-button"
+          onClick={loadMissions}
+        >
+          Refresh Missions
         </button>
       </div>
 
-      <div className="mission-summary">
-
-        <div className="mission-summary-card">
-          <span>Total Missions</span>
-          <strong>{missions.length}</strong>
+      {loading && (
+        <div className="loading-message">
+          Loading missions...
         </div>
+      )}
 
-        <div className="mission-summary-card">
-          <span>Active Missions</span>
-          <strong>
-            {missions.filter((m) => m.status === 'Active').length}
-          </strong>
+      {error && (
+        <div className="error-message">
+          {error}
         </div>
+      )}
 
-        <div className="mission-summary-card">
-          <span>Completed</span>
-          <strong>
-            {missions.filter((m) => m.status === 'Completed').length}
-          </strong>
-        </div>
+      {!loading && !error && (
+        <>
 
-        <div className="mission-summary-card">
-          <span>High Priority</span>
-          <strong>
-            {missions.filter((m) => m.priority === 'High').length}
-          </strong>
-        </div>
+          <div className="mission-summary">
 
-      </div>
+            <div className="summary-card">
+              <h3>Total Missions</h3>
+              <strong>{totalMissions}</strong>
+            </div>
 
-      <div className="mission-filter">
+            <div className="summary-card">
+              <h3>Active</h3>
+              <strong>{activeMissions}</strong>
+            </div>
 
-        <button
-          className={filter === 'All' ? 'filter-active' : ''}
-          onClick={() => setFilter('All')}
-        >
-          All
-        </button>
+            <div className="summary-card">
+              <h3>Returning</h3>
+              <strong>{returningMissions}</strong>
+            </div>
 
-        <button
-          className={filter === 'Active' ? 'filter-active' : ''}
-          onClick={() => setFilter('Active')}
-        >
-          Active
-        </button>
+            <div className="summary-card">
+              <h3>Completed</h3>
+              <strong>{completedMissions}</strong>
+            </div>
 
-        <button
-          className={filter === 'Returning' ? 'filter-active' : ''}
-          onClick={() => setFilter('Returning')}
-        >
-          Returning
-        </button>
+          </div>
 
-        <button
-          className={filter === 'Completed' ? 'filter-active' : ''}
-          onClick={() => setFilter('Completed')}
-        >
-          Completed
-        </button>
+          <div className="filter-buttons">
 
-        <button
-          className={filter === 'Cancelled' ? 'filter-active' : ''}
-          onClick={() => setFilter('Cancelled')}
-        >
-          Cancelled
-        </button>
-
-      </div>
-
-      <div className="missions-table-container">
-
-        <table className="missions-table">
-
-          <thead>
-            <tr>
-              <th>Mission ID</th>
-              <th>Drone</th>
-              <th>Mission Type</th>
-              <th>Location</th>
-              <th>Progress</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            {filteredMissions.map((mission) => (
-
-              <tr key={mission.id}>
-
-                <td>
-                  <strong>{mission.id}</strong>
-                </td>
-
-                <td>
-                  🚁 {mission.drone}
-                </td>
-
-                <td>
-                  {mission.type}
-                </td>
-
-                <td>
-                  📍 {mission.location}
-                </td>
-
-                <td>
-
-                  <div className="mission-progress">
-
-                    <div className="progress-bar">
-                      <div
-                        className="progress-fill"
-                        style={{
-                          width: `${mission.progress}%`
-                        }}
-                      ></div>
-                    </div>
-
-                    <span>{mission.progress}%</span>
-
-                  </div>
-
-                </td>
-
-                <td>
-                  <span
-                    className={`mission-status ${getStatusClass(
-                      mission.status
-                    )}`}
-                  >
-                    {mission.status}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    className={`priority-badge ${getPriorityClass(
-                      mission.priority
-                    )}`}
-                  >
-                    {mission.priority}
-                  </span>
-                </td>
-
-                <td>
-
-                  {mission.status === 'Active' ||
-                  mission.status === 'Returning' ? (
-                    <button
-                      className="cancel-mission"
-                      onClick={() => cancelMission(mission.id)}
-                    >
-                      Cancel
-                    </button>
-                  ) : (
-                    <span className="no-action">
-                      —
-                    </span>
-                  )}
-
-                </td>
-
-              </tr>
-
+            {[
+              'All',
+              'Active',
+              'Returning',
+              'Completed'
+            ].map((status) => (
+              <button
+                key={status}
+                className={
+                  filter === status
+                    ? 'primary-button'
+                    : 'action-button'
+                }
+                onClick={() => setFilter(status)}
+              >
+                {status}
+              </button>
             ))}
 
-          </tbody>
+          </div>
 
-        </table>
+          <div className="mission-table-container">
 
-      </div>
+            <table className="mission-table">
+
+              <thead>
+                <tr>
+                  <th>Mission ID</th>
+                  <th>Drone ID</th>
+                  <th>Mission Type</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                {filteredMissions.map((mission) => (
+                  <tr key={mission.id}>
+
+                    <td>
+                      <strong>{mission.id}</strong>
+                    </td>
+
+                    <td>
+                      {mission.drone_id}
+                    </td>
+
+                    <td>
+                      {mission.mission_type}
+                    </td>
+
+                    <td>
+                      📍 {mission.location}
+                    </td>
+
+                    <td>
+                      <span className="status-badge">
+                        {mission.status}
+                      </span>
+                    </td>
+
+                  </tr>
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+          {filteredMissions.length === 0 && (
+            <div className="no-data-message">
+              No missions found.
+            </div>
+          )}
+
+        </>
+      )}
 
     </div>
   )

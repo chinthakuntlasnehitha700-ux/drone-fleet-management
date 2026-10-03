@@ -1,67 +1,55 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../api'
 
 function DockingStations() {
-  const [stations, setStations] = useState([
-    {
-      id: 'DS-001',
-      name: 'Main Campus Dock',
-      location: 'Zone A',
-      status: 'Available',
-      drone: 'None',
-      battery: 92,
-      temperature: 28
-    },
-    {
-      id: 'DS-002',
-      name: 'Zone B Dock',
-      location: 'Zone B',
-      status: 'Attention',
-      drone: 'DR-007',
-      battery: 34,
-      temperature: 34
-    },
-    {
-      id: 'DS-003',
-      name: 'Zone C Dock',
-      location: 'Zone C',
-      status: 'Charging',
-      drone: 'DR-003',
-      battery: 24,
-      temperature: 30
-    },
-    {
-      id: 'DS-004',
-      name: 'Zone D Dock',
-      location: 'Zone D',
-      status: 'Available',
-      drone: 'None',
-      battery: 88,
-      temperature: 27
-    }
-  ])
-
+  const [stations, setStations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [selectedStation, setSelectedStation] = useState(null)
 
-  const getStatusClass = (status) => {
-    if (status === 'Available') return 'dock-available'
-    if (status === 'Charging') return 'dock-charging'
-    if (status === 'Attention') return 'dock-attention'
-    return ''
+  useEffect(() => {
+    loadStations()
+  }, [])
+
+  const loadStations = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const response = await apiFetch('/api/docking-stations')
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to fetch docking stations')
+      }
+
+      const data = await response.json()
+
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid docking station data received')
+      }
+
+      setStations(data)
+    } catch (error) {
+      console.error(error)
+      setError(error.message || 'Unable to connect to backend')
+      setStations([])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const releaseDrone = (id) => {
-    setStations(
-      stations.map((station) =>
-        station.id === id
-          ? {
-              ...station,
-              status: 'Available',
-              drone: 'None'
-            }
-          : station
-      )
-    )
-  }
+  const availableStations = stations.filter(
+    (station) => station.status === 'Available'
+  ).length
+
+  const chargingStations = stations.filter(
+    (station) => station.status === 'Charging'
+  ).length
+
+  const attentionStations = stations.filter(
+    (station) => station.status === 'Attention'
+  ).length
 
   return (
     <div className="docking-page">
@@ -69,211 +57,157 @@ function DockingStations() {
       <div className="module-header">
         <div>
           <h2>Docking Stations</h2>
-          <p>Monitor charging stations and drone docking activity.</p>
+          <p>Monitor drone docking and charging stations.</p>
         </div>
 
-        <button className="primary-button">
-          + Add Station
+        <button
+          className="primary-button"
+          onClick={loadStations}
+        >
+          Refresh Stations
         </button>
       </div>
 
-      {/* SUMMARY */}
-
-      <div className="dock-summary">
-
-        <div className="dock-summary-card">
-          <span>Total Stations</span>
-          <strong>{stations.length}</strong>
+      {loading && (
+        <div className="loading-message">
+          Loading docking stations...
         </div>
+      )}
 
-        <div className="dock-summary-card">
-          <span>Available</span>
-          <strong>
-            {stations.filter((s) => s.status === 'Available').length}
-          </strong>
+      {error && (
+        <div className="error-message">
+          {error}
         </div>
+      )}
 
-        <div className="dock-summary-card">
-          <span>Charging</span>
-          <strong>
-            {stations.filter((s) => s.status === 'Charging').length}
-          </strong>
-        </div>
+      {!loading && !error && (
+        <>
+          <div className="mission-summary">
 
-        <div className="dock-summary-card">
-          <span>Attention Required</span>
-          <strong>
-            {stations.filter((s) => s.status === 'Attention').length}
-          </strong>
-        </div>
-
-      </div>
-
-      {/* STATION CARDS */}
-
-      <div className="dock-grid">
-
-        {stations.map((station) => (
-
-          <div
-            className="dock-card"
-            key={station.id}
-          >
-
-            <div className="dock-card-header">
-
-              <div>
-                <h3>{station.name}</h3>
-                <span>{station.id}</span>
-              </div>
-
-              <span
-                className={`dock-status ${getStatusClass(
-                  station.status
-                )}`}
-              >
-                {station.status}
-              </span>
-
+            <div className="summary-card">
+              <h3>Total Stations</h3>
+              <strong>{stations.length}</strong>
             </div>
 
-            <div className="dock-location">
-              📍 {station.location}
+            <div className="summary-card">
+              <h3>Available</h3>
+              <strong>{availableStations}</strong>
             </div>
 
-            <div className="dock-info-grid">
-
-              <div>
-                <span>Connected Drone</span>
-                <strong>{station.drone}</strong>
-              </div>
-
-              <div>
-                <span>Temperature</span>
-                <strong>{station.temperature}°C</strong>
-              </div>
-
-              <div>
-                <span>Battery</span>
-                <strong>{station.battery}%</strong>
-              </div>
-
-              <div>
-                <span>Power</span>
-                <strong>
-                  {station.status === 'Charging'
-                    ? 'Charging'
-                    : 'Standby'}
-                </strong>
-              </div>
-
+            <div className="summary-card">
+              <h3>Charging</h3>
+              <strong>{chargingStations}</strong>
             </div>
 
-            <div className="dock-battery">
-
-              <div className="dock-battery-label">
-                <span>Battery Level</span>
-                <strong>{station.battery}%</strong>
-              </div>
-
-              <div className="dock-battery-track">
-                <div
-                  className="dock-battery-fill"
-                  style={{
-                    width: `${station.battery}%`
-                  }}
-                ></div>
-              </div>
-
-            </div>
-
-            <div className="dock-actions">
-
-              <button
-                className="dock-view-button"
-                onClick={() => setSelectedStation(station)}
-              >
-                View Details
-              </button>
-
-              {station.drone !== 'None' && (
-                <button
-                  className="dock-release-button"
-                  onClick={() => releaseDrone(station.id)}
-                >
-                  Release Drone
-                </button>
-              )}
-
+            <div className="summary-card">
+              <h3>Attention</h3>
+              <strong>{attentionStations}</strong>
             </div>
 
           </div>
 
-        ))}
+          <div className="docking-stations-grid">
 
-      </div>
+            {stations.map((station) => (
+              <div
+                className="docking-station-card"
+                key={station.id}
+              >
 
-      {/* DETAILS */}
+                <div className="report-card-header">
+                  <h3>{station.id}</h3>
+
+                  <span className="status-badge">
+                    {station.status}
+                  </span>
+                </div>
+
+                <p>
+                  <strong>Location:</strong>{' '}
+                  {station.location}
+                </p>
+
+                <p>
+                  <strong>Battery:</strong>{' '}
+                  {station.battery}%
+                </p>
+
+                <p>
+                  <strong>Temperature:</strong>{' '}
+                  {station.temperature}°C
+                </p>
+
+                <button
+                  className="action-button"
+                  onClick={() => setSelectedStation(station)}
+                >
+                  View Details
+                </button>
+
+              </div>
+            ))}
+
+          </div>
+
+          {stations.length === 0 && (
+            <div className="no-data-message">
+              No docking stations found.
+            </div>
+          )}
+        </>
+      )}
 
       {selectedStation && (
+        <div className="modal-overlay">
 
-        <div className="dock-details-overlay">
+          <div className="modal-content">
 
-          <div className="dock-details">
+            <div className="report-card-header">
+              <h2>Docking Station Details</h2>
 
-            <button
-              className="dock-close"
-              onClick={() => setSelectedStation(null)}
-            >
-              ×
-            </button>
-
-            <h2>{selectedStation.name}</h2>
-
-            <p className="details-id">
-              Station ID: {selectedStation.id}
-            </p>
-
-            <div className="details-list">
-
-              <p>
-                <strong>Location:</strong>{' '}
-                {selectedStation.location}
-              </p>
-
-              <p>
-                <strong>Status:</strong>{' '}
-                {selectedStation.status}
-              </p>
-
-              <p>
-                <strong>Connected Drone:</strong>{' '}
-                {selectedStation.drone}
-              </p>
-
-              <p>
-                <strong>Battery:</strong>{' '}
-                {selectedStation.battery}%
-              </p>
-
-              <p>
-                <strong>Temperature:</strong>{' '}
-                {selectedStation.temperature}°C
-              </p>
-
+              <button
+                className="action-button"
+                onClick={() => setSelectedStation(null)}
+              >
+                Close
+              </button>
             </div>
 
-            <button
-              className="primary-button"
-              onClick={() => setSelectedStation(null)}
-            >
-              Close
-            </button>
+            <p>
+              <strong>Station ID:</strong>{' '}
+              {selectedStation.id}
+            </p>
+
+            <p>
+              <strong>Location:</strong>{' '}
+              {selectedStation.location}
+            </p>
+
+            <p>
+              <strong>Status:</strong>{' '}
+              {selectedStation.status}
+            </p>
+
+            <p>
+              <strong>Battery:</strong>{' '}
+              {selectedStation.battery}%
+            </p>
+
+            <p>
+              <strong>Temperature:</strong>{' '}
+              {selectedStation.temperature}°C
+            </p>
+
+            {selectedStation.drone_id && (
+              <p>
+                <strong>Connected Drone:</strong>{' '}
+                {selectedStation.drone_id}
+              </p>
+            )}
 
           </div>
 
         </div>
-
       )}
 
     </div>

@@ -1,258 +1,197 @@
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend
-} from 'chart.js'
-
-import { Bar } from 'react-chartjs-2'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend
-)
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../api'
 
 function Battery() {
-  const drones = [
-    {
-      id: 'DR-001',
-      model: 'DJI Matrice 350',
-      battery: 92,
-      status: 'Healthy',
-      flightHours: 128
-    },
-    {
-      id: 'DR-002',
-      model: 'DJI Mavic 3',
-      battery: 76,
-      status: 'Healthy',
-      flightHours: 96
-    },
-    {
-      id: 'DR-003',
-      model: 'Autel EVO II',
-      battery: 24,
-      status: 'Critical',
-      flightHours: 142
-    },
-    {
-      id: 'DR-004',
-      model: 'DJI Matrice 300',
-      battery: 88,
-      status: 'Healthy',
-      flightHours: 114
-    },
-    {
-      id: 'DR-005',
-      model: 'DJI Mavic 3 Enterprise',
-      battery: 61,
-      status: 'Moderate',
-      flightHours: 87
-    },
-    {
-      id: 'DR-006',
-      model: 'DJI Matrice 350',
-      battery: 45,
-      status: 'Moderate',
-      flightHours: 105
-    }
-  ]
+  const [drones, setDrones] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const chartData = {
-    labels: drones.map((drone) => drone.id),
-    datasets: [
-      {
-        label: 'Battery Level (%)',
-        data: drones.map((drone) => drone.battery),
-        borderWidth: 1
+  useEffect(() => {
+    loadBatteryData()
+  }, [])
+
+  const loadBatteryData = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      const response = await apiFetch('/api/drones')
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to fetch battery data')
       }
-    ]
+
+      const data = await response.json()
+
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid battery data received')
+      }
+
+      setDrones(data)
+    } catch (error) {
+      console.error(error)
+      setError(error.message || 'Unable to connect to backend')
+      setDrones([])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100
-      }
-    }
+  const lowBattery = drones.filter((drone) => drone.battery <= 25)
+  const mediumBattery = drones.filter(
+    (drone) => drone.battery > 25 && drone.battery <= 50
+  )
+  const healthyBattery = drones.filter((drone) => drone.battery > 50)
+
+  const averageBattery =
+    drones.length > 0
+      ? (
+          drones.reduce((total, drone) => total + drone.battery, 0) /
+          drones.length
+        ).toFixed(1)
+      : 0
+
+  const getBatteryClass = (battery) => {
+    if (battery <= 25) return 'battery-low'
+    if (battery <= 50) return 'battery-medium'
+    return 'battery-good'
   }
 
   return (
     <div className="battery-page">
-
       <div className="module-header">
         <div>
-          <h2>Battery Management</h2>
-          <p>Monitor battery health and flight power across the fleet.</p>
+          <h2>Battery Monitoring</h2>
+          <p>Monitor battery levels across the drone fleet.</p>
         </div>
 
-        <div className="battery-refresh">
-          ● Monitoring Active
-        </div>
+        <button
+          className="primary-button"
+          onClick={loadBatteryData}
+        >
+          Refresh Battery Data
+        </button>
       </div>
 
-      {/* SUMMARY */}
-
-      <div className="battery-summary">
-
-        <div className="battery-summary-card">
-          <span>Average Battery</span>
-          <strong>64.3%</strong>
-          <small>Across active fleet</small>
+      {loading && (
+        <div className="loading-message">
+          Loading battery data...
         </div>
+      )}
 
-        <div className="battery-summary-card">
-          <span>Healthy Batteries</span>
-          <strong>3</strong>
-          <small>Above 70%</small>
+      {error && (
+        <div className="error-message">
+          {error}
         </div>
+      )}
 
-        <div className="battery-summary-card">
-          <span>Moderate</span>
-          <strong>2</strong>
-          <small>Between 30–70%</small>
-        </div>
+      {!loading && !error && (
+        <>
+          <div className="mission-summary">
 
-        <div className="battery-summary-card critical-card">
-          <span>Critical</span>
-          <strong>1</strong>
-          <small>Below 30%</small>
-        </div>
+            <div className="summary-card">
+              <h3>Total Drones</h3>
+              <strong>{drones.length}</strong>
+            </div>
 
-      </div>
+            <div className="summary-card">
+              <h3>Low Battery</h3>
+              <strong>{lowBattery.length}</strong>
+              <p>25% or below</p>
+            </div>
 
-      {/* ALERT */}
+            <div className="summary-card">
+              <h3>Medium Battery</h3>
+              <strong>{mediumBattery.length}</strong>
+              <p>26% - 50%</p>
+            </div>
 
-      <div className="battery-alert">
-        <div className="battery-alert-icon">
-          ⚠️
-        </div>
+            <div className="summary-card">
+              <h3>Healthy Battery</h3>
+              <strong>{healthyBattery.length}</strong>
+              <p>Above 50%</p>
+            </div>
 
-        <div>
-          <strong>Low Battery Alert</strong>
-          <p>
-            DR-003 battery level is critically low at 24%.
-            Return-to-dock is recommended.
-          </p>
-        </div>
-      </div>
+            <div className="summary-card">
+              <h3>Average Battery</h3>
+              <strong>{averageBattery}%</strong>
+            </div>
 
-      {/* CHART */}
-
-      <div className="battery-chart-card">
-
-        <div className="battery-section-title">
-          <div>
-            <h3>Fleet Battery Levels</h3>
-            <p>Current battery percentage for each drone.</p>
           </div>
-        </div>
 
-        <div className="battery-chart">
-          <Bar data={chartData} options={chartOptions} />
-        </div>
+          <div className="report-card">
+            <div className="report-card-header">
+              <h3>Drone Battery Status</h3>
+            </div>
 
-      </div>
+            {drones.length === 0 ? (
+              <div className="no-data-message">
+                No drone battery data available.
+              </div>
+            ) : (
+              <div className="drone-table-container">
+                <table className="drone-table">
+                  <thead>
+                    <tr>
+                      <th>Drone ID</th>
+                      <th>Model</th>
+                      <th>Battery</th>
+                      <th>Status</th>
+                      <th>Location</th>
+                    </tr>
+                  </thead>
 
-      {/* TABLE */}
+                  <tbody>
+                    {drones.map((drone) => (
+                      <tr key={drone.id}>
 
-      <div className="battery-table-card">
+                        <td>
+                          <strong>{drone.id}</strong>
+                        </td>
 
-        <h3>Battery Details</h3>
+                        <td>
+                          {drone.model}
+                        </td>
 
-        <div className="battery-table-container">
+                        <td>
+                          <div className="battery-container">
 
-          <table className="battery-table">
+                            <div className="battery-bar">
+                              <div
+                                className={`battery-fill ${getBatteryClass(
+                                  drone.battery
+                                )}`}
+                                style={{
+                                  width: `${drone.battery}%`
+                                }}
+                              ></div>
+                            </div>
 
-            <thead>
-              <tr>
-                <th>Drone</th>
-                <th>Model</th>
-                <th>Battery</th>
-                <th>Health Status</th>
-                <th>Flight Hours</th>
-              </tr>
-            </thead>
+                            <span>
+                              {drone.battery}%
+                            </span>
 
-            <tbody>
+                          </div>
+                        </td>
 
-              {drones.map((drone) => (
+                        <td>
+                          {drone.status}
+                        </td>
 
-                <tr key={drone.id}>
+                        <td>
+                          📍 {drone.location}
+                        </td>
 
-                  <td>
-                    <strong>{drone.id}</strong>
-                  </td>
-
-                  <td>{drone.model}</td>
-
-                  <td>
-
-                    <div className="battery-level">
-
-                      <div className="battery-track">
-                        <div
-                          className={
-                            drone.battery <= 30
-                              ? 'battery-danger'
-                              : drone.battery <= 70
-                              ? 'battery-warning'
-                              : 'battery-safe'
-                          }
-                          style={{
-                            width: `${drone.battery}%`
-                          }}
-                        ></div>
-                      </div>
-
-                      <span>{drone.battery}%</span>
-
-                    </div>
-
-                  </td>
-
-                  <td>
-
-                    <span
-                      className={`battery-status ${
-                        drone.status === 'Healthy'
-                          ? 'battery-status-good'
-                          : drone.status === 'Moderate'
-                          ? 'battery-status-warning'
-                          : 'battery-status-danger'
-                      }`}
-                    >
-                      {drone.status}
-                    </span>
-
-                  </td>
-
-                  <td>{drone.flightHours} hrs</td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
