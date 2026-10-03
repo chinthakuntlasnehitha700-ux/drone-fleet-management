@@ -18,9 +18,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# =========================================================
+# CORS CONFIGURATION
+# =========================================================
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,7 +85,10 @@ def verify_password(password: str, stored_password: str):
             100000
         ).hex()
 
-        return secrets.compare_digest(password_hash, stored_hash)
+        return secrets.compare_digest(
+            password_hash,
+            stored_hash
+        )
 
     except Exception:
         return False
@@ -148,7 +158,10 @@ def create_tables():
     connection = get_db()
     cursor = connection.cursor()
 
+    # =====================================================
     # USERS
+    # =====================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,7 +171,10 @@ def create_tables():
         )
     """)
 
+    # =====================================================
     # DRONES
+    # =====================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS drones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -171,7 +187,10 @@ def create_tables():
         )
     """)
 
+    # =====================================================
     # MISSIONS
+    # =====================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS missions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -183,7 +202,10 @@ def create_tables():
         )
     """)
 
+    # =====================================================
     # DOCKING STATIONS
+    # =====================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS docking_stations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -197,7 +219,10 @@ def create_tables():
         )
     """)
 
+    # =====================================================
     # ALERTS
+    # =====================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS alerts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -742,28 +767,36 @@ def get_ai_predictions(
             risk = "High"
             score = 91
             prediction = "Battery Failure Risk"
-            recommendation = "Return drone and recharge immediately."
+            recommendation = (
+                "Return drone and recharge immediately."
+            )
 
         elif battery <= 50:
 
             risk = "Medium"
             score = 72
             prediction = "Low Battery Risk"
-            recommendation = "Plan charging before next mission."
+            recommendation = (
+                "Plan charging before next mission."
+            )
 
         elif status_value == "Returning":
 
             risk = "Medium"
             score = 68
             prediction = "Return Status"
-            recommendation = "Monitor drone until it reaches docking station."
+            recommendation = (
+                "Monitor drone until it reaches docking station."
+            )
 
         else:
 
             risk = "Low"
             score = 15
             prediction = "Normal Operation"
-            recommendation = "No immediate action required."
+            recommendation = (
+                "No immediate action required."
+            )
 
         predictions.append({
             "id": drone["id"],
@@ -882,7 +915,7 @@ def get_reports(
     """)
     average_battery = cursor.fetchone()[0] or 0
 
-    # Online
+    # Online drones
     cursor.execute("""
         SELECT COUNT(*)
         FROM drones
@@ -890,7 +923,7 @@ def get_reports(
     """)
     online_drones = cursor.fetchone()[0]
 
-    # Returning
+    # Returning drones
     cursor.execute("""
         SELECT COUNT(*)
         FROM drones
@@ -898,7 +931,7 @@ def get_reports(
     """)
     returning_drones = cursor.fetchone()[0]
 
-    # Charging
+    # Charging drones
     cursor.execute("""
         SELECT COUNT(*)
         FROM drones
@@ -906,12 +939,13 @@ def get_reports(
     """)
     charging_drones = cursor.fetchone()[0]
 
-    # Missions
+    # Total missions
     cursor.execute("""
         SELECT COUNT(*) FROM missions
     """)
     total_missions = cursor.fetchone()[0]
 
+    # Active missions
     cursor.execute("""
         SELECT COUNT(*)
         FROM missions
@@ -919,6 +953,7 @@ def get_reports(
     """)
     active_missions = cursor.fetchone()[0]
 
+    # Returning missions
     cursor.execute("""
         SELECT COUNT(*)
         FROM missions
@@ -926,6 +961,7 @@ def get_reports(
     """)
     returning_missions = cursor.fetchone()[0]
 
+    # Completed missions
     cursor.execute("""
         SELECT COUNT(*)
         FROM missions
@@ -933,7 +969,7 @@ def get_reports(
     """)
     completed_missions = cursor.fetchone()[0]
 
-    # Alerts
+    # Active alerts
     cursor.execute("""
         SELECT COUNT(*)
         FROM alerts
@@ -941,6 +977,7 @@ def get_reports(
     """)
     active_alerts = cursor.fetchone()[0]
 
+    # Acknowledged alerts
     cursor.execute("""
         SELECT COUNT(*)
         FROM alerts

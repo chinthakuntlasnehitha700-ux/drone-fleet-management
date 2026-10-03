@@ -15,14 +15,11 @@ import Settings from './pages/Settings'
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
   const [activePage, setActivePage] = useState('Dashboard')
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
   const [loginError, setLoginError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
 
-  // Check whether a JWT already exists
   useEffect(() => {
     const token = localStorage.getItem('access_token')
 
@@ -43,10 +40,11 @@ function App() {
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
-            email: email,
+            email: email.trim(),
             password: password
           })
         }
@@ -60,13 +58,11 @@ function App() {
         )
       }
 
-      // Save JWT token
       localStorage.setItem(
         'access_token',
         data.access_token
       )
 
-      // Save logged-in user
       localStorage.setItem(
         'user',
         JSON.stringify(data.user)
@@ -76,8 +72,10 @@ function App() {
       setActivePage('Dashboard')
 
     } catch (error) {
-      console.error(error)
-      setLoginError(error.message)
+      console.error('Login error:', error)
+      setLoginError(
+        error.message || 'Failed to fetch'
+      )
     } finally {
       setLoggingIn(false)
     }
@@ -90,13 +88,14 @@ function App() {
     setLoggedIn(false)
     setEmail('')
     setPassword('')
+    setLoginError('')
     setActivePage('Dashboard')
   }
 
   const pages = {
     Dashboard: <Dashboard />,
-    Drones: <Drones />,
     'Live Map': <LiveMap />,
+    Drones: <Drones />,
     Missions: <Missions />,
     Battery: <Battery />,
     'Docking Stations': <DockingStations />,
@@ -106,36 +105,28 @@ function App() {
     Settings: <Settings />
   }
 
-  // =====================================================
-  // LOGIN PAGE
-  // =====================================================
-
   if (!loggedIn) {
     return (
       <div className="login-page">
 
         <div className="login-card">
 
-          <div className="logo">
-            🚁
-          </div>
+          <div className="logo">🚁</div>
 
-          <h1>
-            DroneFleet AI
-          </h1>
+          <h1>DroneFleet AI</h1>
 
           <p className="subtitle">
             AI-Assisted Drone Fleet Management Platform
           </p>
 
           <div className="welcome">
-            <h2>
-              Welcome Back
-            </h2>
+
+            <h2>Welcome Back</h2>
 
             <p>
               Sign in to access your fleet control center
             </p>
+
           </div>
 
           <form onSubmit={handleLogin}>
@@ -174,7 +165,9 @@ function App() {
               type="submit"
               disabled={loggingIn}
             >
-              {loggingIn ? 'Signing In...' : 'Sign In'}
+              {loggingIn
+                ? 'Signing In...'
+                : 'Sign In'}
             </button>
 
           </form>
@@ -189,14 +182,8 @@ function App() {
     )
   }
 
-  // =====================================================
-  // DASHBOARD
-  // =====================================================
-
   return (
     <div className="dashboard">
-
-      {/* SIDEBAR */}
 
       <aside className="sidebar">
 
@@ -338,8 +325,6 @@ function App() {
 
         </nav>
 
-        {/* LOGOUT */}
-
         <button
           className="logout"
           onClick={handleLogout}
@@ -349,17 +334,13 @@ function App() {
 
       </aside>
 
-      {/* MAIN CONTENT */}
-
       <main className="main-content">
 
         <header>
 
           <div>
 
-            <h1>
-              {activePage}
-            </h1>
+            <h1>{activePage}</h1>
 
             <p>
               DroneFleet AI Management Platform
